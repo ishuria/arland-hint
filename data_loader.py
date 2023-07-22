@@ -1,102 +1,3 @@
-
-
-# from torchtext.data.utils import get_tokenizer
-# from torchtext.vocab import build_vocab_from_iterator
-# from torchtext.datasets import multi30k, Multi30k
-# from typing import Iterable, List
-# import torch
-
-
-# # We need to modify the URLs for the dataset since the links to the original dataset are broken
-# # Refer to https://github.com/pytorch/text/issues/1756#issuecomment-1163664163 for more info
-# multi30k.URL["train"] = "https://raw.githubusercontent.com/neychev/small_DL_repo/master/datasets/Multi30k/training.tar.gz"
-# multi30k.URL["valid"] = "https://raw.githubusercontent.com/neychev/small_DL_repo/master/datasets/Multi30k/validation.tar.gz"
-
-# SRC_LANGUAGE = 'de'
-# TGT_LANGUAGE = 'en'
-
-# # Place-holders
-# token_transform = {}
-# vocab_transform = {}
-
-# token_transform[SRC_LANGUAGE] = get_tokenizer('spacy', language='de_core_news_sm')
-# token_transform[TGT_LANGUAGE] = get_tokenizer('spacy', language='en_core_web_sm')
-
-# # helper function to yield list of tokens
-# def yield_tokens(data_iter: Iterable, language: str) -> List[str]:
-#     language_index = {SRC_LANGUAGE: 0, TGT_LANGUAGE: 1}
-
-#     for data_sample in data_iter:
-#         yield token_transform[language](data_sample[language_index[language]])
-
-
-# # Define special symbols and indices
-# UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX = 0, 1, 2, 3
-# # Make sure the tokens are in order of their indices to properly insert them in vocab
-# special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>']
-
-# for ln in [SRC_LANGUAGE, TGT_LANGUAGE]:
-#     # Training data Iterator
-#     train_iter = Multi30k(split='train', language_pair=(SRC_LANGUAGE, TGT_LANGUAGE))
-#     # Create torchtext's Vocab object
-#     vocab_transform[ln] = build_vocab_from_iterator(yield_tokens(train_iter, ln),
-#                                                     min_freq=1,
-#                                                     specials=special_symbols,
-#                                                     special_first=True)
-
-# # function to add BOS/EOS and create tensor for input sequence indices
-# def tensor_transform(token_ids: List[int]):
-#     return torch.cat((torch.tensor([BOS_IDX]),
-#                       torch.tensor(token_ids),
-#                       torch.tensor([EOS_IDX])))
-
-# # helper function to club together sequential operations
-# def sequential_transforms(*transforms):
-#     def func(txt_input):
-#         for transform in transforms:
-#             txt_input = transform(txt_input)
-#         return txt_input
-#     return func
-
-# text_transform = {}
-# for ln in [SRC_LANGUAGE, TGT_LANGUAGE]:
-#     text_transform[ln] = sequential_transforms(token_transform[ln], #Tokenization
-#                                                vocab_transform[ln], #Numericalization
-#                                                tensor_transform) # Add BOS/EOS and create tensor
-    
-
-
-# from torch.nn.utils.rnn import pad_sequence
-
-# # function to collate data samples into batch tensors
-# def collate_fn(batch):
-#     src_batch, tgt_batch = [], []
-#     for src_sample, tgt_sample in batch:
-#         src_batch.append(text_transform[SRC_LANGUAGE](src_sample.rstrip("\n")))
-#         tgt_batch.append(text_transform[TGT_LANGUAGE](tgt_sample.rstrip("\n")))
-
-#     src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
-#     tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
-#     return src_batch, tgt_batch
-
-
-# from torch.utils.data import DataLoader
-# BATCH_SIZE = 128
-
-# train_iter = Multi30k(split='train', language_pair=(SRC_LANGUAGE, TGT_LANGUAGE))
-# train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
-
-# # print(len(list(train_dataloader)))
-# # for src, tgt in enumerate(train_dataloader):
-#     # print("src = ", src)
-#     # print("tgt = ", tgt)
-
-# print(len(train_dataloader))
-
-
-
-# =============================================================================================
-
 from torch.utils.data import IterableDataset 
 import random
 import mysql.connector
@@ -112,36 +13,38 @@ def _read_text_iterator(data):
         yield row
 
 class HintDataSet(IterableDataset): 
-    def __init__(self, description, full_num_lines):
-        self.src_data=[]
-        self.tgt_data=[]
-        mydb = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="123456",
-        database="ayesha"
-        )
-        mycursor = mydb.cursor()
-        mycursor.execute("SELECT * FROM item_doc order by item_id limit " + str(full_num_lines))
+    src_data=[]
+    tgt_data=[]
+    def __init__(self, full_num_lines):
+        if len(HintDataSet.src_data) == 0 or len(HintDataSet.tgt_data) == 0:
+            HintDataSet.src_data=[]
+            HintDataSet.tgt_data=[]
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="123456",
+                database="ayesha"
+            )
+            mycursor = mydb.cursor()
+            mycursor.execute("SELECT * FROM item_doc order by item_id limit " + str(full_num_lines))
 
-        myresult = mycursor.fetchall()
-        for x in myresult:
-            item = json.loads(x[1])
-            content_html = item['bundler']['content']
-            answer_html = item['bundler']['answers']
-            hint_html = item['bundler']['hint']
-            content_clean = BeautifulSoup(content_html, "html.parser").text
-            answer_clean = BeautifulSoup(answer_html, "html.parser").text
-            hint_clean = BeautifulSoup(hint_html, "html.parser").text
-            self.src_data.append(content_clean + '<sep>' + answer_clean)
-            self.tgt_data.append(hint_clean)
+            myresult = mycursor.fetchall()
+            for x in myresult:
+                item = json.loads(x[1])
+                content_html = item['bundler']['content']
+                answer_html = item['bundler']['answers']
+                hint_html = item['bundler']['hint']
+                content_clean = BeautifulSoup(content_html, "html.parser").text
+                answer_clean = BeautifulSoup(answer_html, "html.parser").text
+                hint_clean = BeautifulSoup(hint_html, "html.parser").text
+                HintDataSet.src_data.append(content_clean + '<sep>' + answer_clean)
+                HintDataSet.tgt_data.append(hint_clean)
+            mycursor.close()
+            mydb.close()
 
-        mycursor.close()
-        mydb.close()
-        self.description = description
         self.full_num_lines = full_num_lines
-        src_data_iter = _read_text_iterator(self.src_data)
-        trg_data_iter = _read_text_iterator(self.tgt_data)
+        src_data_iter = _read_text_iterator(HintDataSet.src_data)
+        trg_data_iter = _read_text_iterator(HintDataSet.tgt_data)
         self._iterator = zip(src_data_iter, trg_data_iter)
         self.num_lines = full_num_lines
         self.current_pos = None
