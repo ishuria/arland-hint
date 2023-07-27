@@ -7,7 +7,12 @@ from typing import Iterable, List
 from torchtext.vocab import build_vocab_from_iterator
 from pre_process import indexToPath, DATA_FOLDER
 import os
-  
+
+TRAIN_START_INDEX = 1
+TRAIN_END_INDEX = 8000
+
+EVAL_START_INDEX = 8001
+EVAL_END_INDEX = 9000
 
 def _read_text_iterator(startIndex: int, endIndex: int, category: str):
     for index in range(startIndex, endIndex):
@@ -72,13 +77,13 @@ UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 # Make sure the tokens are in order of their indices to properly insert them in vocab
 special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
-train_iter = HintDataSet(startIndex=1, endIndex=8000)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
 SRC_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True))
 
-train_iter = HintDataSet(startIndex=1, endIndex=8000)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
 TGT_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
                                                     specials=special_symbols,
@@ -241,7 +246,7 @@ from torch.nn.utils.rnn import pad_sequence
 def sequential_transforms(*transforms):
     def func(txt_input):
         for transform in transforms:
-            print(txt_input)
+            # print(txt_input)
             txt_input = transform(txt_input)
         return txt_input
     return func
@@ -255,14 +260,14 @@ def tensor_transform(token_ids: List[int]):
 
 vocab_transform = {}
 
-train_iter = HintDataSet(startIndex=1, endIndex=8000)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True)
 
 
-train_iter = HintDataSet(startIndex=1, endIndex=8000)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
                                                     specials=special_symbols,
@@ -295,7 +300,7 @@ from torch.utils.data import DataLoader
 def train_epoch(model, optimizer):
     model.train()
     losses = 0
-    train_iter = HintDataSet(startIndex=1, endIndex=8000)
+    train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
     train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     for src, tgt in train_dataloader:
@@ -324,7 +329,7 @@ def evaluate(model):
     model.eval()
     losses = 0
 
-    val_iter = HintDataSet(description="hint", full_num_lines=800)
+    val_iter = HintDataSet(startIndex=EVAL_START_INDEX, endIndex=EVAL_END_INDEX)
     val_dataloader = DataLoader(val_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     for src, tgt in val_dataloader:
