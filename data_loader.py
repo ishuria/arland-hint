@@ -1,4 +1,4 @@
-from torch.utils.data import IterableDataset 
+from torch.utils.data import IterableDataset
 import random
 import mysql.connector
 import json
@@ -9,24 +9,31 @@ from pre_process import indexToPath, DATA_FOLDER
 import os
 
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 80
+TRAIN_END_INDEX = 800
 
-EVAL_START_INDEX = 81
-EVAL_END_INDEX = 90
+EVAL_START_INDEX = 801
+EVAL_END_INDEX = 900
+
 
 def _read_text_iterator(startIndex: int, endIndex: int, category: str):
     for index in range(startIndex, endIndex):
         filePath = DATA_FOLDER + os.sep + indexToPath(index) + os.sep + category + ".txt"
         yield readFileContent(filePath)
 
+
+def readFileContentByIndex(index: int, category: str):
+    filePath = DATA_FOLDER + os.sep + indexToPath(index) + os.sep + category + ".txt"
+    return readFileContent(filePath)
+
+
 def readFileContent(path: str):
     list = []
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding="utf-8") as f:
         list = [line.rstrip('\n') for line in f]
     return list
 
 
-class HintDataSet(IterableDataset): 
+class HintDataSet(IterableDataset):
     def __init__(self, startIndex: int, endIndex: int):
         self.startIndex = startIndex
         self.endIndex = endIndex
@@ -60,10 +67,11 @@ class HintDataSet(IterableDataset):
 
     def __str__(self):
         return self.description
-  
+
 
 SRC = 'content_answer'
 TGT = 'hint'
+
 
 # helper function to yield list of tokens
 def yield_tokens(data_iter: Iterable, side: str) -> List[str]:
@@ -72,6 +80,7 @@ def yield_tokens(data_iter: Iterable, side: str) -> List[str]:
         # print(list(jieba.cut(data_sample[side_index[side]])))
         yield data_sample[side_index[side]]
 
+
 # Define special symbols and indices
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 # Make sure the tokens are in order of their indices to properly insert them in vocab
@@ -79,26 +88,27 @@ special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 SRC_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, SRC),
-                                                    min_freq=1,
-                                                    specials=special_symbols,
-                                                    special_first=True))
+                                               min_freq=1,
+                                               specials=special_symbols,
+                                               special_first=True))
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 TGT_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, TGT),
-                                                    min_freq=1,
-                                                    specials=special_symbols,
-                                                    special_first=True))
+                                               min_freq=1,
+                                               specials=special_symbols,
+                                               special_first=True))
 
 print("SRC_VOCAB_SIZE = ", SRC_VOCAB_SIZE)
 print("TGT_VOCAB_SIZE = ", TGT_VOCAB_SIZE)
-
 
 from torch import Tensor
 import torch
 import torch.nn as nn
 from torch.nn import Transformer
 import math
+
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 # helper Module that adds positional encoding to the token embedding to introduce a notion of word order.
 class PositionalEncoding(nn.Module):
@@ -107,7 +117,7 @@ class PositionalEncoding(nn.Module):
                  dropout: float,
                  maxlen: int = 5000):
         super(PositionalEncoding, self).__init__()
-        den = torch.exp(- torch.arange(0, emb_size, 2)* math.log(10000) / emb_size)
+        den = torch.exp(- torch.arange(0, emb_size, 2) * math.log(10000) / emb_size)
         pos = torch.arange(0, maxlen).reshape(maxlen, 1)
         pos_embedding = torch.zeros((maxlen, emb_size))
         pos_embedding[:, 0::2] = torch.sin(pos * den)
@@ -120,6 +130,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, token_embedding: Tensor):
         return self.dropout(token_embedding + self.pos_embedding[:token_embedding.size(0), :])
 
+
 # helper Module to convert tensor of input indices into corresponding tensor of token embeddings
 class TokenEmbedding(nn.Module):
     def __init__(self, vocab_size: int, emb_size):
@@ -129,6 +140,7 @@ class TokenEmbedding(nn.Module):
 
     def forward(self, tokens: Tensor):
         return self.embedding(tokens.long()) * math.sqrt(self.emb_size)
+
 
 # Seq2Seq Network
 class Seq2SeqTransformer(nn.Module):
@@ -170,12 +182,12 @@ class Seq2SeqTransformer(nn.Module):
 
     def encode(self, src: Tensor, src_mask: Tensor):
         return self.transformer.encoder(self.positional_encoding(
-                            self.src_tok_emb(src)), src_mask)
+            self.src_tok_emb(src)), src_mask)
 
     def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor):
         return self.transformer.decoder(self.positional_encoding(
-                          self.tgt_tok_emb(tgt)), memory,
-                          tgt_mask)
+            self.tgt_tok_emb(tgt)), memory,
+            tgt_mask)
 
 
 ######################################################################
@@ -196,7 +208,7 @@ def create_mask(src, tgt):
     tgt_seq_len = tgt.shape[0]
 
     tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
-    src_mask = torch.zeros((src_seq_len, src_seq_len),device=DEVICE).type(torch.bool)
+    src_mask = torch.zeros((src_seq_len, src_seq_len), device=DEVICE).type(torch.bool)
 
     src_padding_mask = (src == PAD_IDX).transpose(0, 1)
     tgt_padding_mask = (tgt == PAD_IDX).transpose(0, 1)
@@ -212,7 +224,7 @@ torch.manual_seed(0)
 EMB_SIZE = 512
 NHEAD = 8
 FFN_HID_DIM = 512
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 NUM_ENCODER_LAYERS = 3
 NUM_DECODER_LAYERS = 3
 
@@ -242,6 +254,7 @@ optimizer = torch.optim.Adam(transformer.parameters(), lr=0.0001, betas=(0.9, 0.
 
 from torch.nn.utils.rnn import pad_sequence
 
+
 # helper function to club together sequential operations
 def sequential_transforms(*transforms):
     def func(txt_input):
@@ -249,7 +262,9 @@ def sequential_transforms(*transforms):
             # print(txt_input)
             txt_input = transform(txt_input)
         return txt_input
+
     return func
+
 
 # function to add BOS/EOS and create tensor for input sequence indices
 def tensor_transform(token_ids: List[int]):
@@ -262,24 +277,23 @@ vocab_transform = {}
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
-                                                    min_freq=1,
-                                                    specials=special_symbols,
-                                                    special_first=True)
-
+                                                 min_freq=1,
+                                                 specials=special_symbols,
+                                                 special_first=True)
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
-                                                    min_freq=1,
-                                                    specials=special_symbols,
-                                                    special_first=True)
+                                                 min_freq=1,
+                                                 specials=special_symbols,
+                                                 special_first=True)
 
 # ``src`` and ``tgt`` language text transforms to convert raw strings into tensors indices
 text_transform = {}
 token_transform = {}
 
 for side in [SRC, TGT]:
-    text_transform[side] = sequential_transforms(vocab_transform[side], #Numericalization
-                                               tensor_transform) # Add BOS/EOS and create tensor
+    text_transform[side] = sequential_transforms(vocab_transform[side],  # Numericalization
+                                                 tensor_transform)  # Add BOS/EOS and create tensor
 
 
 # function to collate data samples into batch tensors
@@ -294,8 +308,8 @@ def collate_fn(batch):
     return src_batch, tgt_batch
 
 
-
 from torch.utils.data import DataLoader
+
 
 def train_epoch(model, optimizer):
     model.train()
@@ -311,7 +325,7 @@ def train_epoch(model, optimizer):
 
         src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
 
-        logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
+        logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
 
         optimizer.zero_grad()
 
@@ -340,7 +354,7 @@ def evaluate(model):
 
         src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
 
-        logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
+        logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
 
         tgt_out = tgt[1:, :]
         loss = loss_fn(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
@@ -348,19 +362,22 @@ def evaluate(model):
 
     return losses / len(val_dataloader)
 
+
 ######################################################################
 # Now we have all the ingredients to train our model. Let's do it!
 #
 
 from timeit import default_timer as timer
-NUM_EPOCHS = 18
 
-for epoch in range(1, NUM_EPOCHS+1):
+NUM_EPOCHS = 180
+
+for epoch in range(1, NUM_EPOCHS + 1):
     start_time = timer()
     train_loss = train_epoch(transformer, optimizer)
     end_time = timer()
     val_loss = evaluate(transformer)
-    print((f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
+    print((
+              f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
 
 
 # function to generate output sequence using greedy algorithm
@@ -370,7 +387,7 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
 
     memory = model.encode(src, src_mask)
     ys = torch.ones(1, 1).fill_(start_symbol).type(torch.long).to(DEVICE)
-    for i in range(max_len-1):
+    for i in range(max_len - 1):
         memory = memory.to(DEVICE)
         tgt_mask = (generate_square_subsequent_mask(ys.size(0))
                     .type(torch.bool)).to(DEVICE)
@@ -394,12 +411,12 @@ def translate(model: torch.nn.Module, src_sentence: str):
     num_tokens = src.shape[0]
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(
-        model,  src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
-    return " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", "")
+        model, src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
+    return " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace(
+        "<eos>", "")
 
 
 ######################################################################
 #
-
-print(translate(transformer, "Eine Gruppe von Menschen steht vor einem Iglu ."))
-
+print(readFileContentByIndex(665, "input"))
+print(translate(transformer, readFileContentByIndex(665, "input")))
