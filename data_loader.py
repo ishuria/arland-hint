@@ -3,57 +3,38 @@ import random
 import mysql.connector
 import json
 from bs4 import BeautifulSoup
-import jieba
 from typing import Iterable, List
 from torchtext.vocab import build_vocab_from_iterator
+from pre_process import indexToPath, DATA_FOLDER
+import os
   
 
-def _read_text_iterator(data):
-    for row in data:
-        yield row
+def _read_text_iterator(startIndex: int, endIndex: int, category: str):
+    for index in range(startIndex, endIndex):
+        filePath = DATA_FOLDER + os.sep + indexToPath(index) + os.sep + category + ".txt"
+        yield readFileContent(filePath)
+
+def readFileContent(path: str):
+    list = []
+    with open(path, 'r') as f:
+        list = [line.rstrip('\n') for line in f]
+    return list
+
 
 class HintDataSet(IterableDataset): 
-    src_data=[]
-    tgt_data=[]
-    def __init__(self, full_num_lines):
-        if len(HintDataSet.src_data) == 0 or len(HintDataSet.tgt_data) == 0:
-            HintDataSet.src_data=[]
-            HintDataSet.tgt_data=[]
-            mydb = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password="123456",
-                database="ayesha"
-            )
-            mycursor = mydb.cursor()
-            mycursor.execute("SELECT * FROM item_doc order by item_id limit " + str(full_num_lines))
-
-            myresult = mycursor.fetchall()
-            for x in myresult:
-                item = json.loads(x[1])
-                content_html = item['bundler']['content']
-                answer_html = item['bundler']['answers']
-                hint_html = item['bundler']['hint']
-                content_clean = BeautifulSoup(content_html, "html.parser").text
-                answer_clean = BeautifulSoup(answer_html, "html.parser").text
-                hint_clean = BeautifulSoup(hint_html, "html.parser").text
-                HintDataSet.src_data.append(content_clean + '<sep>' + answer_clean)
-                HintDataSet.tgt_data.append(hint_clean)
-            mycursor.close()
-            mydb.close()
-
-        self.full_num_lines = full_num_lines
-        src_data_iter = _read_text_iterator(HintDataSet.src_data)
-        trg_data_iter = _read_text_iterator(HintDataSet.tgt_data)
+    def __init__(self, startIndex: int, endIndex: int):
+        self.startIndex = startIndex
+        self.endIndex = endIndex
+        src_data_iter = _read_text_iterator(startIndex, endIndex, "input")
+        trg_data_iter = _read_text_iterator(startIndex, endIndex, "output")
         self._iterator = zip(src_data_iter, trg_data_iter)
-        self.num_lines = full_num_lines
         self.current_pos = None
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.current_pos == self.num_lines - 1:
+        if self.current_pos == (self.endIndex - self.startIndex + 1) - 1:
             raise StopIteration
         item = next(self._iterator)
         if self.current_pos is None:
@@ -63,7 +44,7 @@ class HintDataSet(IterableDataset):
         return item
 
     def __len__(self):
-        return self.num_lines
+        return self.endIndex - self.startIndex + 1
 
     def pos(self):
         """
@@ -84,20 +65,20 @@ def yield_tokens(data_iter: Iterable, side: str) -> List[str]:
     side_index = {SRC: 0, TGT: 1}
     for data_sample in data_iter:
         # print(list(jieba.cut(data_sample[side_index[side]])))
-        yield list(jieba.cut(data_sample[side_index[side]]))
+        yield data_sample[side_index[side]]
 
 # Define special symbols and indices
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 # Make sure the tokens are in order of their indices to properly insert them in vocab
 special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
-train_iter = HintDataSet(description="hint", full_num_lines=800)
+train_iter = HintDataSet(startIndex=1, endIndex=8000)
 SRC_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True))
 
-train_iter = HintDataSet(description="hint", full_num_lines=800)
+train_iter = HintDataSet(startIndex=1, endIndex=8000)
 TGT_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
                                                     specials=special_symbols,
@@ -226,7 +207,7 @@ torch.manual_seed(0)
 EMB_SIZE = 512
 NHEAD = 8
 FFN_HID_DIM = 512
-BATCH_SIZE = 128
+BATCH_SIZE = 32
 NUM_ENCODER_LAYERS = 3
 NUM_DECODER_LAYERS = 3
 
@@ -260,7 +241,7 @@ from torch.nn.utils.rnn import pad_sequence
 def sequential_transforms(*transforms):
     def func(txt_input):
         for transform in transforms:
-            # print(txt_input)
+            print(txt_input)
             txt_input = transform(txt_input)
         return txt_input
     return func
@@ -274,14 +255,14 @@ def tensor_transform(token_ids: List[int]):
 
 vocab_transform = {}
 
-train_iter = HintDataSet(description="hint", full_num_lines=800)
+train_iter = HintDataSet(startIndex=1, endIndex=8000)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True)
 
 
-train_iter = HintDataSet(description="hint", full_num_lines=800)
+train_iter = HintDataSet(startIndex=1, endIndex=8000)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
                                                     specials=special_symbols,
@@ -291,15 +272,8 @@ vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
 text_transform = {}
 token_transform = {}
 
-def get_tokenizer(input_text):
-    return list(jieba.cut(input_text))
-
-token_transform[SRC] = get_tokenizer
-token_transform[TGT] = get_tokenizer
-
 for side in [SRC, TGT]:
-    text_transform[side] = sequential_transforms(token_transform[side],
-                                                 vocab_transform[side], #Numericalization
+    text_transform[side] = sequential_transforms(vocab_transform[side], #Numericalization
                                                tensor_transform) # Add BOS/EOS and create tensor
 
 
@@ -307,8 +281,8 @@ for side in [SRC, TGT]:
 def collate_fn(batch):
     src_batch, tgt_batch = [], []
     for src_sample, tgt_sample in batch:
-        src_batch.append(text_transform[SRC](src_sample.rstrip("\n")))
-        tgt_batch.append(text_transform[TGT](tgt_sample.rstrip("\n")))
+        src_batch.append(text_transform[SRC](src_sample))
+        tgt_batch.append(text_transform[TGT](tgt_sample))
 
     src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
     tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
@@ -321,7 +295,7 @@ from torch.utils.data import DataLoader
 def train_epoch(model, optimizer):
     model.train()
     losses = 0
-    train_iter = HintDataSet(description="hint", full_num_lines=800)
+    train_iter = HintDataSet(startIndex=1, endIndex=8000)
     train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     for src, tgt in train_dataloader:
