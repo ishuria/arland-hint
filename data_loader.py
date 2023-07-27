@@ -9,10 +9,10 @@ from pre_process import indexToPath, DATA_FOLDER
 import os
 
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 8000
+TRAIN_END_INDEX = 80
 
-EVAL_START_INDEX = 8001
-EVAL_END_INDEX = 9000
+EVAL_START_INDEX = 81
+EVAL_END_INDEX = 90
 
 def _read_text_iterator(startIndex: int, endIndex: int, category: str):
     for index in range(startIndex, endIndex):
@@ -77,13 +77,13 @@ UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 # Make sure the tokens are in order of their indices to properly insert them in vocab
 special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 SRC_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True))
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 TGT_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
                                                     specials=special_symbols,
@@ -260,14 +260,14 @@ def tensor_transform(token_ids: List[int]):
 
 vocab_transform = {}
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
                                                     specials=special_symbols,
                                                     special_first=True)
 
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
+train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
                                                     specials=special_symbols,
