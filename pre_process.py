@@ -10,7 +10,7 @@ from torchtext.vocab import build_vocab_from_iterator
 import os
 
 
-DATA_FOLDER = "/Users/xiangchaolei/len/hint-data"
+DATA_FOLDER = "C:\hint-data"
 BATCH_SIZE = 100
 MAX_INDEX = 100000
 
@@ -45,7 +45,7 @@ def indexToPath(itemIndex: int):
 
 def openDatabase():
     return mysql.connector.connect(
-        host="localhost",
+        host="192.168.0.102",
         user="root",
         password="123456",
         database="ayesha"
@@ -81,10 +81,10 @@ def main():
             path = DATA_FOLDER + os.sep + indexToPath(maxIndex)
             if not os.path.exists(path=path):
                 os.makedirs(path)
-            with open(path + os.sep + "input.txt", 'w') as f:
+            with open(path + os.sep + "input.txt", 'w', encoding="utf-8") as f:
                 for s in inputList:
                     f.write(s + '\n')
-            with open(path + os.sep + "output.txt", 'w') as f:
+            with open(path + os.sep + "output.txt", 'w', encoding="utf-8") as f:
                 for s in outputList:
                     f.write(s + '\n')
 
