@@ -1,4 +1,4 @@
-from torch.utils.data import IterableDataset 
+from torch.utils.data import IterableDataset
 import random
 import mysql.connector
 import json
@@ -7,263 +7,90 @@ from typing import Iterable, List
 from torchtext.vocab import build_vocab_from_iterator
 from pre_process import indexToPath, DATA_FOLDER
 import os
+import torch
+import torch.nn as nn
+from util.db_util import open_database
+from util.file_util import read_file_content
+from hint_data_set import HintDataSet
+from transformer import Transformer, create_mask, generate_square_subsequent_mask
 
+# 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 80
+TRAIN_END_INDEX = 20000
 
-EVAL_START_INDEX = 81
-EVAL_END_INDEX = 90
+EVAL_START_INDEX = 20001
+EVAL_END_INDEX = 25000
 
-def openDatabase():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="123456",
-        database="ayesha"
-        )
+# transformer参数
+EMB_SIZE = 512
+NHEAD = 8
+FFN_HID_DIM = 512
+BATCH_SIZE = 8
+NUM_ENCODER_LAYERS = 3
+NUM_DECODER_LAYERS = 3
+
 
 INDEX_ID_MAP = {}
 
-def getIndexIdMapping():
-    db = openDatabase();
+SRC = 'input'
+TGT = 'output'
+
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+def get_index_id_mapping():
+    db = open_database();
     cursor = db.cursor()
-    cursor.execute("select id from item_processed where subject = 2 and department = 3 and length(knowledge) > 2;")
+    cursor.execute("select id from item_index where subject = 2 and department = 3;")
     results = cursor.fetchall()
     for i in range(len(results)):
         INDEX_ID_MAP[i+1]=results[i][0]
     cursor.close();
     db.close();
 
-getIndexIdMapping()
-# print(INDEX_ID_MAP)
+get_index_id_mapping()
 
-def _read_text_iterator(startIndex: int, endIndex: int, category: str):
-    # for index in range(startIndex, endIndex):
-    #     filePath = DATA_FOLDER + os.sep + indexToPath(index) + os.sep + category + ".txt"
-    #     yield readFileContent(filePath)
+
+def read_text_iterator(startIndex: int, endIndex: int, categories: list):
     for index in range(startIndex, endIndex):
-        yield readFileContent(index, category)
+        yield read_file_content(INDEX_ID_MAP[index], categories)
 
-def readFileContent(index: int, category: str):
-    id = INDEX_ID_MAP[index]
-    list = []
-    # with open(path, 'r') as f:
-    #     list = [line.rstrip('\n') for line in f]
-    # return list
-    db = openDatabase();
-    cursor = db.cursor();
-    if category == "input":
-        cursor.execute("select content_vector, hint_vector from item_processed where id = %(id)s", { "id": id})
-        result = cursor.fetchall()[0]
-        contentVector = json.loads(result[0])
-        for content in contentVector:
-            list.append(content)
-        list.append('<sep>')
-        hintVector = json.loads(result[1])
-        for hint in hintVector:
-            list.append(hint)
-    else:
-        cursor.execute("select answer_vector from item_processed where id = %(id)s", { "id": id})
-        result = cursor.fetchall()[0]
-        answerVector = json.loads(result[0])
-        for answer in answerVector:
-            list.append(answer)
-    cursor.close();
-    db.close();
-    return list;
+# def read_data_func(index: int, categories: list):
+#     return read_file_content(INDEX_ID_MAP[index], categories)
 
-
-class HintDataSet(IterableDataset): 
-    def __init__(self, startIndex: int, endIndex: int):
-        self.startIndex = startIndex
-        self.endIndex = endIndex
-        src_data_iter = _read_text_iterator(startIndex, endIndex, "input")
-        trg_data_iter = _read_text_iterator(startIndex, endIndex, "output")
-        self._iterator = zip(src_data_iter, trg_data_iter)
-        self.current_pos = None
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.current_pos == (self.endIndex - self.startIndex + 1) - 1:
-            raise StopIteration
-        item = next(self._iterator)
-        if self.current_pos is None:
-            self.current_pos = 0
-        else:
-            self.current_pos += 1
-        return item
-
-    def __len__(self):
-        return self.endIndex - self.startIndex + 1
-
-    def pos(self):
-        """
-        Returns current position of the iterator. This returns None
-        if the iterator hasn't been used yet.
-        """
-        return self.current_pos
-
-    def __str__(self):
-        return self.description
-  
-
-SRC = 'content_answer'
-TGT = 'hint'
 
 # helper function to yield list of tokens
 def yield_tokens(data_iter: Iterable, side: str) -> List[str]:
     side_index = {SRC: 0, TGT: 1}
     for data_sample in data_iter:
-        # print(list(jieba.cut(data_sample[side_index[side]])))
         yield data_sample[side_index[side]]
 
 # Define special symbols and indices
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 # Make sure the tokens are in order of their indices to properly insert them in vocab
-special_symbols = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
+SPECIAL_SYMBOLS = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
-SRC_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, SRC),
-                                                    min_freq=1,
-                                                    specials=special_symbols,
-                                                    special_first=True))
+def build_data_set(start_index: int, end_index: int):
+    return HintDataSet(start_index=start_index, 
+                       end_index=end_index,
+                       read_text_iterator=read_text_iterator,
+                       input_categories=['content', 'hint'],
+                       output_categories=['answer'])
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
-TGT_VOCAB_SIZE = len(build_vocab_from_iterator(yield_tokens(train_iter, TGT),
-                                                    min_freq=1,
-                                                    specials=special_symbols,
-                                                    special_first=True))
+
+def count_vocabulary_size(train_iter: IterableDataset, side: str):
+    return len(build_vocab_from_iterator(yield_tokens(train_iter, side),
+                                         min_freq=1,
+                                         specials=SPECIAL_SYMBOLS,
+                                         special_first=True))
+    
+# 计算输入和输出字典的大小
+SRC_VOCAB_SIZE = count_vocabulary_size(build_data_set(TRAIN_START_INDEX, EVAL_END_INDEX), SRC)
+TGT_VOCAB_SIZE = count_vocabulary_size(build_data_set(TRAIN_START_INDEX, EVAL_END_INDEX), TGT)
 
 print("SRC_VOCAB_SIZE = ", SRC_VOCAB_SIZE)
 print("TGT_VOCAB_SIZE = ", TGT_VOCAB_SIZE)
 
-
-from torch import Tensor
-import torch
-import torch.nn as nn
-from torch.nn import Transformer
-import math
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# helper Module that adds positional encoding to the token embedding to introduce a notion of word order.
-class PositionalEncoding(nn.Module):
-    def __init__(self,
-                 emb_size: int,
-                 dropout: float,
-                 maxlen: int = 5000):
-        super(PositionalEncoding, self).__init__()
-        den = torch.exp(- torch.arange(0, emb_size, 2)* math.log(10000) / emb_size)
-        pos = torch.arange(0, maxlen).reshape(maxlen, 1)
-        pos_embedding = torch.zeros((maxlen, emb_size))
-        pos_embedding[:, 0::2] = torch.sin(pos * den)
-        pos_embedding[:, 1::2] = torch.cos(pos * den)
-        pos_embedding = pos_embedding.unsqueeze(-2)
-
-        self.dropout = nn.Dropout(dropout)
-        self.register_buffer('pos_embedding', pos_embedding)
-
-    def forward(self, token_embedding: Tensor):
-        return self.dropout(token_embedding + self.pos_embedding[:token_embedding.size(0), :])
-
-# helper Module to convert tensor of input indices into corresponding tensor of token embeddings
-class TokenEmbedding(nn.Module):
-    def __init__(self, vocab_size: int, emb_size):
-        super(TokenEmbedding, self).__init__()
-        self.embedding = nn.Embedding(vocab_size, emb_size)
-        self.emb_size = emb_size
-
-    def forward(self, tokens: Tensor):
-        return self.embedding(tokens.long()) * math.sqrt(self.emb_size)
-
-# Seq2Seq Network
-class Seq2SeqTransformer(nn.Module):
-    def __init__(self,
-                 num_encoder_layers: int,
-                 num_decoder_layers: int,
-                 emb_size: int,
-                 nhead: int,
-                 src_vocab_size: int,
-                 tgt_vocab_size: int,
-                 dim_feedforward: int = 512,
-                 dropout: float = 0.1):
-        super(Seq2SeqTransformer, self).__init__()
-        self.transformer = Transformer(d_model=emb_size,
-                                       nhead=nhead,
-                                       num_encoder_layers=num_encoder_layers,
-                                       num_decoder_layers=num_decoder_layers,
-                                       dim_feedforward=dim_feedforward,
-                                       dropout=dropout)
-        self.generator = nn.Linear(emb_size, tgt_vocab_size)
-        self.src_tok_emb = TokenEmbedding(src_vocab_size, emb_size)
-        self.tgt_tok_emb = TokenEmbedding(tgt_vocab_size, emb_size)
-        self.positional_encoding = PositionalEncoding(
-            emb_size, dropout=dropout)
-
-    def forward(self,
-                src: Tensor,
-                trg: Tensor,
-                src_mask: Tensor,
-                tgt_mask: Tensor,
-                src_padding_mask: Tensor,
-                tgt_padding_mask: Tensor,
-                memory_key_padding_mask: Tensor):
-        src_emb = self.positional_encoding(self.src_tok_emb(src))
-        tgt_emb = self.positional_encoding(self.tgt_tok_emb(trg))
-        outs = self.transformer(src_emb, tgt_emb, src_mask, tgt_mask, None,
-                                src_padding_mask, tgt_padding_mask, memory_key_padding_mask)
-        return self.generator(outs)
-
-    def encode(self, src: Tensor, src_mask: Tensor):
-        return self.transformer.encoder(self.positional_encoding(
-                            self.src_tok_emb(src)), src_mask)
-
-    def decode(self, tgt: Tensor, memory: Tensor, tgt_mask: Tensor):
-        return self.transformer.decoder(self.positional_encoding(
-                          self.tgt_tok_emb(tgt)), memory,
-                          tgt_mask)
-
-
-######################################################################
-# During training, we need a subsequent word mask that will prevent the model from looking into
-# the future words when making predictions. We will also need masks to hide
-# source and target padding tokens. Below, let's define a function that will take care of both.
-#
-
-
-def generate_square_subsequent_mask(sz):
-    mask = (torch.triu(torch.ones((sz, sz), device=DEVICE)) == 1).transpose(0, 1)
-    mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
-    return mask
-
-
-def create_mask(src, tgt):
-    src_seq_len = src.shape[0]
-    tgt_seq_len = tgt.shape[0]
-
-    tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
-    src_mask = torch.zeros((src_seq_len, src_seq_len),device=DEVICE).type(torch.bool)
-
-    src_padding_mask = (src == PAD_IDX).transpose(0, 1)
-    tgt_padding_mask = (tgt == PAD_IDX).transpose(0, 1)
-    return src_mask, tgt_mask, src_padding_mask, tgt_padding_mask
-
-
-######################################################################
-# Let's now define the parameters of our model and instantiate the same. Below, we also
-# define our loss function which is the cross-entropy loss and the optimizer used for training.
-#
-torch.manual_seed(0)
-
-EMB_SIZE = 512
-NHEAD = 8
-FFN_HID_DIM = 512
-BATCH_SIZE = 32
-NUM_ENCODER_LAYERS = 3
-NUM_DECODER_LAYERS = 3
-
-transformer = Seq2SeqTransformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
+transformer = Transformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
                                  NHEAD, SRC_VOCAB_SIZE, TGT_VOCAB_SIZE, FFN_HID_DIM)
 
 for p in transformer.parameters():
@@ -276,24 +103,12 @@ loss_fn = torch.nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 
 optimizer = torch.optim.Adam(transformer.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
 
-######################################################################
-# Collation
-# ---------
-#
-# As seen in the ``Data Sourcing and Processing`` section, our data iterator yields a pair of raw strings.
-# We need to convert these string pairs into the batched tensors that can be processed by our ``Seq2Seq`` network
-# defined previously. Below we define our collate function that converts a batch of raw strings into batch tensors that
-# can be fed directly into our model.
-#
-
-
 from torch.nn.utils.rnn import pad_sequence
 
 # helper function to club together sequential operations
 def sequential_transforms(*transforms):
     def func(txt_input):
         for transform in transforms:
-            # print(txt_input)
             txt_input = transform(txt_input)
         return txt_input
     return func
@@ -310,14 +125,14 @@ vocab_transform = {}
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                     min_freq=1,
-                                                    specials=special_symbols,
+                                                    specials=SPECIAL_SYMBOLS,
                                                     special_first=True)
 
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                     min_freq=1,
-                                                    specials=special_symbols,
+                                                    specials=SPECIAL_SYMBOLS,
                                                     special_first=True)
 
 # ``src`` and ``tgt`` language text transforms to convert raw strings into tensors indices
@@ -335,11 +150,9 @@ def collate_fn(batch):
     for src_sample, tgt_sample in batch:
         src_batch.append(text_transform[SRC](src_sample))
         tgt_batch.append(text_transform[TGT](tgt_sample))
-
     src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
     tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
     return src_batch, tgt_batch
-
 
 
 from torch.utils.data import DataLoader
@@ -356,7 +169,7 @@ def train_epoch(model, optimizer):
 
         tgt_input = tgt[:-1, :]
 
-        src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
+        src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input, DEVICE)
 
         logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
 
@@ -385,7 +198,7 @@ def evaluate(model):
 
         tgt_input = tgt[:-1, :]
 
-        src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
+        src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input, DEVICE)
 
         logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
 
@@ -408,7 +221,7 @@ for epoch in range(1, NUM_EPOCHS+1):
     end_time = timer()
     val_loss = evaluate(transformer)
     print((f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
-    torch.save(transformer, "./model")
+    torch.save(transformer, "./answer_model.bin")
 
 
 # function to generate output sequence using greedy algorithm
