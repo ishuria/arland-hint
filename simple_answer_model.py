@@ -23,7 +23,6 @@ BATCH_SIZE = 8
 NUM_ENCODER_LAYERS = 3
 NUM_DECODER_LAYERS = 3
 
-
 INDEX_ID_MAP = {}
 
 SRC = 'input'
@@ -31,15 +30,17 @@ TGT = 'output'
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
 def get_index_id_mapping():
     db = open_database();
     cursor = db.cursor()
     cursor.execute("select id from item_index where subject = 2 and department = 3;")
     results = cursor.fetchall()
     for i in range(len(results)):
-        INDEX_ID_MAP[i+1]=results[i][0]
+        INDEX_ID_MAP[i + 1] = results[i][0]
     cursor.close();
     db.close();
+
 
 get_index_id_mapping()
 
@@ -47,6 +48,7 @@ get_index_id_mapping()
 def read_text_iterator(startIndex: int, endIndex: int, categories: list):
     for index in range(startIndex, endIndex):
         yield read_file_content(INDEX_ID_MAP[index], categories)
+
 
 # def read_data_func(index: int, categories: list):
 #     return read_file_content(INDEX_ID_MAP[index], categories)
@@ -58,13 +60,15 @@ def yield_tokens(data_iter: Iterable, side: str) -> List[str]:
     for data_sample in data_iter:
         yield data_sample[side_index[side]]
 
+
 # Define special symbols and indices
 UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 # Make sure the tokens are in order of their indices to properly insert them in vocab
 SPECIAL_SYMBOLS = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
+
 def build_data_set(start_index: int, end_index: int):
-    return HintDataSet(start_index=start_index, 
+    return HintDataSet(start_index=start_index,
                        end_index=end_index,
                        read_text_iterator=read_text_iterator,
                        input_categories=['content', 'hint'],
@@ -76,7 +80,8 @@ def count_vocabulary_size(train_iter: IterableDataset, side: str):
                                          min_freq=1,
                                          specials=SPECIAL_SYMBOLS,
                                          special_first=True))
-    
+
+
 # 计算输入和输出字典的大小
 SRC_VOCAB_SIZE = count_vocabulary_size(build_data_set(TRAIN_START_INDEX, EVAL_END_INDEX), SRC)
 TGT_VOCAB_SIZE = count_vocabulary_size(build_data_set(TRAIN_START_INDEX, EVAL_END_INDEX), TGT)
@@ -99,13 +104,16 @@ optimizer = torch.optim.Adam(transformer.parameters(), lr=0.0001, betas=(0.9, 0.
 
 from torch.nn.utils.rnn import pad_sequence
 
+
 # helper function to club together sequential operations
 def sequential_transforms(*transforms):
     def func(txt_input):
         for transform in transforms:
             txt_input = transform(txt_input)
         return txt_input
+
     return func
+
 
 # function to add BOS/EOS and create tensor for input sequence indices
 def tensor_transform(token_ids: List[int]):
@@ -118,24 +126,23 @@ vocab_transform = {}
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
-                                                    min_freq=1,
-                                                    specials=SPECIAL_SYMBOLS,
-                                                    special_first=True)
-
+                                                 min_freq=1,
+                                                 specials=SPECIAL_SYMBOLS,
+                                                 special_first=True)
 
 train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
-                                                    min_freq=1,
-                                                    specials=SPECIAL_SYMBOLS,
-                                                    special_first=True)
+                                                 min_freq=1,
+                                                 specials=SPECIAL_SYMBOLS,
+                                                 special_first=True)
 
 # ``src`` and ``tgt`` language text transforms to convert raw strings into tensors indices
 text_transform = {}
 token_transform = {}
 
 for side in [SRC, TGT]:
-    text_transform[side] = sequential_transforms(vocab_transform[side], #Numericalization
-                                               tensor_transform) # Add BOS/EOS and create tensor
+    text_transform[side] = sequential_transforms(vocab_transform[side],  # Numericalization
+                                                 tensor_transform)  # Add BOS/EOS and create tensor
 
 
 # function to collate data samples into batch tensors
@@ -151,6 +158,7 @@ def collate_fn(batch):
 
 from torch.utils.data import DataLoader
 
+
 def train_epoch(model, optimizer):
     model.train()
     losses = 0
@@ -165,7 +173,7 @@ def train_epoch(model, optimizer):
 
         src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input, DEVICE)
 
-        logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
+        logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
 
         optimizer.zero_grad()
 
@@ -194,7 +202,7 @@ def evaluate(model):
 
         src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input, DEVICE)
 
-        logits = model(src, tgt_input, src_mask, tgt_mask,src_padding_mask, tgt_padding_mask, src_padding_mask)
+        logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
 
         tgt_out = tgt[1:, :]
         loss = loss_fn(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
@@ -202,19 +210,22 @@ def evaluate(model):
 
     return losses / len(val_dataloader)
 
+
 ######################################################################
 # Now we have all the ingredients to train our model. Let's do it!
 #
 
 from timeit import default_timer as timer
+
 NUM_EPOCHS = 18
 
-for epoch in range(1, NUM_EPOCHS+1):
+for epoch in range(1, NUM_EPOCHS + 1):
     start_time = timer()
     train_loss = train_epoch(transformer, optimizer)
     end_time = timer()
     val_loss = evaluate(transformer)
-    print((f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
+    print((
+              f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
     torch.save(transformer, "./answer_model.bin")
 
 
@@ -225,7 +236,7 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
 
     memory = model.encode(src, src_mask)
     ys = torch.ones(1, 1).fill_(start_symbol).type(torch.long).to(DEVICE)
-    for i in range(max_len-1):
+    for i in range(max_len - 1):
         memory = memory.to(DEVICE)
         tgt_mask = (generate_square_subsequent_mask(ys.size(0))
                     .type(torch.bool)).to(DEVICE)
@@ -249,12 +260,12 @@ def translate(model: torch.nn.Module, src_sentence: str):
     num_tokens = src.shape[0]
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(
-        model,  src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
-    return " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", "")
+        model, src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
+    return " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace(
+        "<eos>", "")
 
 
 ######################################################################
 #
 
 print(translate(transformer, "Eine Gruppe von Menschen steht vor einem Iglu ."))
-

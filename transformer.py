@@ -49,7 +49,7 @@ class Seq2SeqTransformer(nn.Module):
                  tgt_vocab_size: int,
                  dim_feedforward: int = 512,
                  dropout: float = 0.1):
-        super(Transformer, self).__init__()
+        super(Seq2SeqTransformer, self).__init__()
         self.transformer = Transformer(d_model=emb_size,
                                        nhead=nhead,
                                        num_encoder_layers=num_encoder_layers,
