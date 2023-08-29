@@ -124,13 +124,13 @@ def tensor_transform(token_ids: List[int]):
 
 vocab_transform = {}
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
+train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
 vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
                                                  min_freq=1,
                                                  specials=SPECIAL_SYMBOLS,
                                                  special_first=True)
 
-train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=EVAL_END_INDEX)
+train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
 vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                  min_freq=1,
                                                  specials=SPECIAL_SYMBOLS,
@@ -162,7 +162,7 @@ from torch.utils.data import DataLoader
 def train_epoch(model, optimizer):
     model.train()
     losses = 0
-    train_iter = HintDataSet(startIndex=TRAIN_START_INDEX, endIndex=TRAIN_END_INDEX)
+    train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=TRAIN_END_INDEX)
     train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     for src, tgt in train_dataloader:
@@ -191,7 +191,7 @@ def evaluate(model):
     model.eval()
     losses = 0
 
-    val_iter = HintDataSet(startIndex=EVAL_START_INDEX, endIndex=EVAL_END_INDEX)
+    val_iter = build_data_set(start_index=EVAL_START_INDEX, end_index=EVAL_END_INDEX)
     val_dataloader = DataLoader(val_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     for src, tgt in val_dataloader:
