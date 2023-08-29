@@ -6,7 +6,7 @@ import torch.nn as nn
 from util.db_util import open_database
 from util.file_util import read_file_content
 from hint_data_set import HintDataSet
-from transformer import Transformer, create_mask, generate_square_subsequent_mask
+from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequent_mask
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
@@ -84,7 +84,7 @@ TGT_VOCAB_SIZE = count_vocabulary_size(build_data_set(TRAIN_START_INDEX, EVAL_EN
 print("SRC_VOCAB_SIZE = ", SRC_VOCAB_SIZE)
 print("TGT_VOCAB_SIZE = ", TGT_VOCAB_SIZE)
 
-transformer = Transformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
+transformer = Seq2SeqTransformer(NUM_ENCODER_LAYERS, NUM_DECODER_LAYERS, EMB_SIZE,
                                  NHEAD, SRC_VOCAB_SIZE, TGT_VOCAB_SIZE, FFN_HID_DIM)
 
 for p in transformer.parameters():
