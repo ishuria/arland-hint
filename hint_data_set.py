@@ -24,7 +24,7 @@ class HintDataSet(IterableDataset):
     def __init__(self, 
                  start_index: int, 
                  end_index: int, 
-                 read_text_iterator: function,
+                 read_text_iterator,
                  input_categories: list,
                  output_categories: list):
         self.start_index = start_index
