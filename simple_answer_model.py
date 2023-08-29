@@ -1,7 +1,6 @@
 from torch.utils.data import IterableDataset
 from typing import Iterable, List
 from torchtext.vocab import build_vocab_from_iterator
-from pre_process import indexToPath, DATA_FOLDER
 import torch
 import torch.nn as nn
 from util.db_util import open_database
