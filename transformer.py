@@ -92,6 +92,11 @@ def generate_square_subsequent_mask(sz, device):
     return mask
 
 
+# Define special symbols and indices
+UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
+# Make sure the tokens are in order of their indices to properly insert them in vocab
+SPECIAL_SYMBOLS = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
+
 def create_mask(src, tgt, device):
     src_seq_len = src.shape[0]
     tgt_seq_len = tgt.shape[0]
