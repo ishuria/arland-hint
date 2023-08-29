@@ -1,5 +1,5 @@
 import os
-from config_util import DATA_FOLDER
+from .config_util import DATA_FOLDER
 
 # 每10万个记录形成一个文件夹
 # levelOne/levelTwo/levelThree/dividend

@@ -1,5 +1,5 @@
 import mysql.connector
-from config_util import DB_HOST
+from .config_util import DB_HOST
 
 def open_database():
     return mysql.connector.connect(
