@@ -10,10 +10,10 @@ from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequ
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 2000
+TRAIN_END_INDEX = 3000
 
-EVAL_START_INDEX = 2001
-EVAL_END_INDEX = 2500
+EVAL_START_INDEX = 3001
+EVAL_END_INDEX = 3500
 
 # transformer参数
 EMB_SIZE = 512
@@ -34,7 +34,7 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def get_index_id_mapping():
     db = open_database();
     cursor = db.cursor()
-    cursor.execute("select id from item_index where subject = 2 and department = 3;")
+    cursor.execute("select id from item_index where subject = 2 and knowledge = 1;")
     results = cursor.fetchall()
     for i in range(len(results)):
         INDEX_ID_MAP[i + 1] = results[i][0]
