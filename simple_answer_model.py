@@ -1,12 +1,7 @@
 from torch.utils.data import IterableDataset
-import random
-import mysql.connector
-import json
-from bs4 import BeautifulSoup
 from typing import Iterable, List
 from torchtext.vocab import build_vocab_from_iterator
 from pre_process import indexToPath, DATA_FOLDER
-import os
 import torch
 import torch.nn as nn
 from util.db_util import open_database
