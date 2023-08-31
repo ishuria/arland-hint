@@ -32,17 +32,18 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def get_index_id_mapping():
-    db = open_database();
+    index_id_map = {}
+    db = open_database()
     cursor = db.cursor()
     cursor.execute("select id from item_index where subject = 2 and knowledge = 1;")
     results = cursor.fetchall()
     for i in range(len(results)):
-        INDEX_ID_MAP[i + 1] = results[i][0]
-    cursor.close();
-    db.close();
+        index_id_map[i + 1] = results[i][0]
+    cursor.close()
+    db.close()
 
 
-get_index_id_mapping()
+INDEX_ID_MAP = get_index_id_mapping()
 
 
 def read_text_iterator(startIndex: int, endIndex: int, categories: list):
@@ -111,7 +112,6 @@ def sequential_transforms(*transforms):
         for transform in transforms:
             txt_input = transform(txt_input)
         return txt_input
-
     return func
 
 
