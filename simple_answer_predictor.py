@@ -26,6 +26,7 @@ def get_index_id_mapping():
         index_id_map[i + 1] = results[i][0]
     cursor.close()
     db.close()
+    return index_id_map
 
 
 INDEX_ID_MAP = get_index_id_mapping()
