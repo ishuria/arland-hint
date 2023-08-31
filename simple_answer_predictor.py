@@ -1,9 +1,7 @@
 import torch
-from simple_answer_model import Seq2SeqTransformer
-
 
 
 # Model class must be defined somewhere
-model = torch.load("./model")
+model = torch.load("./answer_model.bin")
 model.eval()
 
