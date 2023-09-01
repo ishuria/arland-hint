@@ -77,6 +77,7 @@ UNK_IDX, PAD_IDX, BOS_IDX, EOS_IDX, SEP_IDX = 0, 1, 2, 3, 4
 SPECIAL_SYMBOLS = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 
 
+print("start build_vocab_from_iterator")
 vocab_transform = {}
 
 train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
@@ -90,7 +91,7 @@ vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
                                                  min_freq=1,
                                                  specials=SPECIAL_SYMBOLS,
                                                  special_first=True)
-
+print("finished build_vocab_from_iterator")
 
 # function to add BOS/EOS and create tensor for input sequence indices
 def tensor_transform(token_ids: List[int]):
@@ -130,6 +131,8 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
 
 
 for index in INDEX_ID_MAP:
+    if index <= EVAL_START_INDEX:
+        continue
     src_sentence = read_file_content(INDEX_ID_MAP[index], ['content', 'hint'])
     src = text_transform[SRC](src_sentence).view(-1, 1)
     num_tokens = src.shape[0]
