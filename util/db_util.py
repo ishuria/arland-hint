@@ -8,4 +8,5 @@ def open_database():
         user="root",
         password="123456",
         database="ayesha",
+        auth_plugin='mysql_native_password'
         )
