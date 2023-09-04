@@ -10,10 +10,10 @@ from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequ
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 30000
+TRAIN_END_INDEX = 50000
 
-EVAL_START_INDEX = 30001
-EVAL_END_INDEX = 35000
+EVAL_START_INDEX = 50001
+EVAL_END_INDEX = 60000
 
 # 序号 -> id
 def get_index_id_mapping():
@@ -138,5 +138,6 @@ for index in INDEX_ID_MAP:
     num_tokens = src.shape[0]
     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
     tgt_tokens = greedy_decode(model, src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
+    print("----------------------")
     print("src: ", src_sentence)
     print("tgt: ", " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace("<eos>", ""))

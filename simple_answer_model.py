@@ -10,18 +10,18 @@ from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequ
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 30000
+TRAIN_END_INDEX = 50000
 
-EVAL_START_INDEX = 30001
-EVAL_END_INDEX = 35000
+EVAL_START_INDEX = 50001
+EVAL_END_INDEX = 60000
 
 # transformer参数
-EMB_SIZE = 768
-NHEAD = 12
+EMB_SIZE = 512
+NHEAD = 8
 FFN_HID_DIM = 512
-BATCH_SIZE = 4
-NUM_ENCODER_LAYERS = 6
-NUM_DECODER_LAYERS = 6
+BATCH_SIZE = 12
+NUM_ENCODER_LAYERS = 3
+NUM_DECODER_LAYERS = 3
 
 INDEX_ID_MAP = {}
 
@@ -166,7 +166,9 @@ def train_epoch(model, optimizer):
     train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=TRAIN_END_INDEX)
     train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
+    index = 0
     for src, tgt in train_dataloader:
+        print("train_epoch: index = ", index, ", total = ", train_dataloader.__len__())
         src = src.to(DEVICE)
         tgt = tgt.to(DEVICE)
 
@@ -184,6 +186,8 @@ def train_epoch(model, optimizer):
 
         optimizer.step()
         losses += loss.item()
+
+        index+=1
 
     return losses / len(train_dataloader)
 
@@ -221,9 +225,12 @@ from timeit import default_timer as timer
 NUM_EPOCHS = 18
 
 for epoch in range(1, NUM_EPOCHS + 1):
+    print("start training epoch: ", epoch)
     start_time = timer()
+    print("start time: ", start_time)
     train_loss = train_epoch(transformer, optimizer)
     end_time = timer()
+    print("end time: ", end_time)
     val_loss = evaluate(transformer)
     print((
               f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Val loss: {val_loss:.3f}, "f"Epoch time = {(end_time - start_time):.3f}s"))
