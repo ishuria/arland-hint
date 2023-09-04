@@ -1,5 +1,6 @@
 from util.db_util import open_database
 from util.file_util import read_file_content, read_file_content_as_string
+import json
 
 OUTPUT_FOLDER = "/home/len/knowledge-data/"
 
@@ -45,5 +46,17 @@ print("total knowledge: ", len(knowledge_map))
 with open(OUTPUT_FOLDER + 'class.txt','w') as class_file:
 	class_file.write('\n'.join(knowledge_list))
     
-for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX):
-    print(i)
+train_list = []
+for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
+    index = INDEX_ID_MAP[i]
+    content = read_file_content_as_string(index, ['content'])
+    knowledge_list = read_file_content(index, ['knowledge'])
+    knowledge_id_list = []
+    for knowledge in knowledge_list:
+        knowledge_id_list.append(knowledge_map[knowledge])
+    train_list.append(content + '\t' + json.dumps(knowledge_id_list))
+
+with open(OUTPUT_FOLDER + 'train.txt','w') as train_file:
+	train_file.write('\n'.join(train_list))
+
+
