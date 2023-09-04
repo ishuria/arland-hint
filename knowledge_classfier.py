@@ -56,6 +56,8 @@ for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
     knowledge_list = read_file_content(index, ['knowledge'])
     knowledge_id_list = []
     for knowledge in knowledge_list:
+        if knowledge == '<sep>':
+            continue
         knowledge_id_list.append(knowledge_map[knowledge])
     train_list.append(content + '\t' + json.dumps(knowledge_id_list))
 
@@ -70,6 +72,8 @@ for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
     knowledge_list = read_file_content(index, ['knowledge'])
     knowledge_id_list = []
     for knowledge in knowledge_list:
+        if knowledge == '<sep>':
+            continue
         knowledge_id_list.append(knowledge_map[knowledge])
     eval_list.append(content + '\t' + json.dumps(knowledge_id_list))
 
