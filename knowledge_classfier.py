@@ -1,5 +1,5 @@
 from util.db_util import open_database
-from util.file_util import read_file_content
+from util.file_util import read_file_content, read_file_content_as_string
 
 OUTPUT_FOLDER = "/home/len/knowledge-data/"
 
@@ -38,10 +38,12 @@ for i in range(len(INDEX_ID_MAP)):
 
 knowledge_list = []
 for knowledge in knowledge_map:
-    print(knowledge)
     knowledge_list.append(knowledge)
 
 print("total knowledge: ", len(knowledge_map))
 
 with open(OUTPUT_FOLDER + 'class.txt','w') as class_file:
 	class_file.write('\n'.join(knowledge_list))
+    
+for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX):
+    print(i)
