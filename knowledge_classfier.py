@@ -6,10 +6,10 @@ OUTPUT_FOLDER = "/home/len/knowledge-data/"
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 1500
+TRAIN_END_INDEX = 7000
 
-EVAL_START_INDEX = 1501
-EVAL_END_INDEX = 1950
+EVAL_START_INDEX = 7001
+EVAL_END_INDEX = 8400
 
 
 # 序号 -> id
@@ -17,7 +17,7 @@ def get_index_id_mapping():
     index_id_map = {}
     db = open_database()
     cursor = db.cursor()
-    cursor.execute("select id from item_index where subject = 2 and department = 3 and knowledge = 1;")
+    cursor.execute("select id from item_index where subject = 4 and department = 3 and knowledge = 1;")
     results = cursor.fetchall()
     for i in range(len(results)):
         index_id_map[i + 1] = results[i][0]
@@ -52,7 +52,7 @@ with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
 
 train_list = []
 for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
-    index = INDEX_ID_MAP[i]
+    index = INDEX_ID_MAP[i + 1]
     content = read_file_content_as_string(index, ['content', 'answer'])
     content = content.replace('<sep>', '')
     knowledge_list = read_file_content(index, ['knowledge'])
@@ -68,7 +68,7 @@ with open(OUTPUT_FOLDER + 'train.txt', 'w') as train_file:
 
 eval_list = []
 for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
-    index = INDEX_ID_MAP[i]
+    index = INDEX_ID_MAP[i + 1]
     content = read_file_content_as_string(index, ['content', 'answer'])
     content = content.replace('<sep>', '')
     knowledge_list = read_file_content(index, ['knowledge'])
