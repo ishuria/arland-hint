@@ -53,7 +53,7 @@ with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
 train_list = []
 for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
     index = INDEX_ID_MAP[i]
-    content = read_file_content_as_string(index, ['content'])
+    content = read_file_content_as_string(index, ['content', 'answer'])
     content = content.replace('<sep>', '')
     knowledge_list = read_file_content(index, ['knowledge'])
     knowledge_id_list = []
@@ -61,7 +61,7 @@ for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
         if knowledge == '<sep>':
             continue
         knowledge_id_list.append(knowledge_map[knowledge])
-    train_list.append(content + '\t' + json.dumps(knowledge_id_list))
+    train_list.append(content + '\t' + str(knowledge_id_list[0]))
 
 with open(OUTPUT_FOLDER + 'train.txt', 'w') as train_file:
     train_file.write('\n'.join(train_list))
@@ -69,7 +69,7 @@ with open(OUTPUT_FOLDER + 'train.txt', 'w') as train_file:
 eval_list = []
 for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
     index = INDEX_ID_MAP[i]
-    content = read_file_content_as_string(index, ['content'])
+    content = read_file_content_as_string(index, ['content', 'answer'])
     content = content.replace('<sep>', '')
     knowledge_list = read_file_content(index, ['knowledge'])
     knowledge_id_list = []
@@ -77,7 +77,7 @@ for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
         if knowledge == '<sep>':
             continue
         knowledge_id_list.append(knowledge_map[knowledge])
-    eval_list.append(content + '\t' + json.dumps(knowledge_id_list))
+    eval_list.append(content + '\t' + str(knowledge_id_list[0]))
 
 with open(OUTPUT_FOLDER + 'eval.txt', 'w') as eval_file:
     eval_file.write('\n'.join(eval_list))
