@@ -24,3 +24,7 @@ def read_file_content(item_index: int, categories: list):
             list = [line.rstrip('\n') for line in f]
         list.append('<sep>')
     return list
+
+def read_file_content_as_string(item_index: int, categories: list):
+    list = read_file_content(item_index, categories)
+    return "".join(list)
