@@ -11,6 +11,7 @@ TRAIN_END_INDEX = 1500
 EVAL_START_INDEX = 1501
 EVAL_END_INDEX = 1950
 
+
 # 序号 -> id
 def get_index_id_mapping():
     index_id_map = {}
@@ -24,20 +25,21 @@ def get_index_id_mapping():
     db.close()
     return index_id_map
 
+
 INDEX_ID_MAP = get_index_id_mapping()
 
 knowledge_map = {}
 knowledge_index = 0
 
 for i in range(len(INDEX_ID_MAP)):
-    index = INDEX_ID_MAP[i+1]
+    index = INDEX_ID_MAP[i + 1]
     knowledge_list = read_file_content(index, ['knowledge'])
     for knowledge in knowledge_list:
         if knowledge == '<sep>':
-             continue
+            continue
         if knowledge not in knowledge_map:
             knowledge_map[knowledge] = knowledge_index
-            knowledge_index+=1
+            knowledge_index += 1
 
 knowledge_list = []
 for knowledge in knowledge_map:
@@ -45,9 +47,9 @@ for knowledge in knowledge_map:
 
 print("total knowledge: ", len(knowledge_map))
 
-with open(OUTPUT_FOLDER + 'class.txt','w') as class_file:
-	class_file.write('\n'.join(knowledge_list))
-    
+with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
+    class_file.write('\n'.join(knowledge_list))
+
 train_list = []
 for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
     index = INDEX_ID_MAP[i]
@@ -61,8 +63,8 @@ for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
         knowledge_id_list.append(knowledge_map[knowledge])
     train_list.append(content + '\t' + json.dumps(knowledge_id_list))
 
-with open(OUTPUT_FOLDER + 'train.txt','w') as train_file:
-	train_file.write('\n'.join(train_list))
+with open(OUTPUT_FOLDER + 'train.txt', 'w') as train_file:
+    train_file.write('\n'.join(train_list))
 
 eval_list = []
 for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
@@ -77,7 +79,5 @@ for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
         knowledge_id_list.append(knowledge_map[knowledge])
     eval_list.append(content + '\t' + json.dumps(knowledge_id_list))
 
-with open(OUTPUT_FOLDER + 'eval.txt','w') as eval_file:
-	eval_file.write('\n'.join(eval_list))
-
-
+with open(OUTPUT_FOLDER + 'eval.txt', 'w') as eval_file:
+    eval_file.write('\n'.join(eval_list))
