@@ -33,6 +33,8 @@ for i in range(len(INDEX_ID_MAP)):
     index = INDEX_ID_MAP[i+1]
     knowledge_list = read_file_content(index, ['knowledge'])
     for knowledge in knowledge_list:
+        if knowledge == '<sep>':
+             continue
         if knowledge not in knowledge_map:
             knowledge_map[knowledge] = knowledge_index
             knowledge_index+=1
