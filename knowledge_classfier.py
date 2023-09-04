@@ -27,7 +27,7 @@ knowledge_map = {}
 knowledge_index = 0
 
 for i in range(len(INDEX_ID_MAP)):
-    index = INDEX_ID_MAP[i]
+    index = INDEX_ID_MAP[i+1]
     knowledge_list = read_file_content(INDEX_ID_MAP[index], ['knowledge'])
     for knowledge in knowledge_list:
         if knowledge not in knowledge_map:
