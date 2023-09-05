@@ -20,8 +20,10 @@ def index_to_path(item_index: int):
 def read_file_content(item_index: int, categories: list):
     list = []
     for category in categories:
+        _list = []
         with open(DATA_FOLDER + index_to_path(item_index) + os.sep + category + '.txt', 'r') as f:
-            list = [line.rstrip('\n') for line in f]
+            _list = [line.rstrip('\n') for line in f]
+        list.extend(_list)
         list.append('<sep>')
     return list
 
