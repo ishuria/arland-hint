@@ -10,10 +10,10 @@ from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequ
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 50000
+TRAIN_END_INDEX = 75000
 
-EVAL_START_INDEX = 50001
-EVAL_END_INDEX = 60000
+EVAL_START_INDEX = 75001
+EVAL_END_INDEX = 105000
 
 # transformer参数
 EMB_SIZE = 512
@@ -35,7 +35,7 @@ def get_index_id_mapping():
     index_id_map = {}
     db = open_database()
     cursor = db.cursor()
-    cursor.execute("select id from item_index where subject = 2 and department = 3;")
+    cursor.execute("select id from item_index where subject = 2 and department = 4;")
     results = cursor.fetchall()
     for i in range(len(results)):
         index_id_map[i + 1] = results[i][0]
@@ -50,10 +50,6 @@ INDEX_ID_MAP = get_index_id_mapping()
 def read_text_iterator(startIndex: int, endIndex: int, categories: list):
     for index in range(startIndex, endIndex):
         yield read_file_content(INDEX_ID_MAP[index], categories)
-
-
-# def read_data_func(index: int, categories: list):
-#     return read_file_content(INDEX_ID_MAP[index], categories)
 
 
 # helper function to yield list of tokens
