@@ -9,14 +9,14 @@ from hint_data_set import HintDataSet
 from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequent_mask
 
 # Creates once at the beginning of training
-scaler = torch.cuda.amp.GradScaler()
+# scaler = torch.cuda.amp.GradScaler()
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 50000
+TRAIN_END_INDEX = 30000
 
-EVAL_START_INDEX = 50001
-EVAL_END_INDEX = 60000
+EVAL_START_INDEX = 30001
+EVAL_END_INDEX = 40000
 
 # transformer参数
 EMB_SIZE = 512
@@ -176,25 +176,25 @@ def train_epoch(model, optimizer):
         src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input, DEVICE)
 
         # Casts operations to mixed precision
-        with torch.cuda.amp.autocast():
+        # with torch.cuda.amp.autocast():
             # loss = model(data)
-            logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
+        logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
 
         optimizer.zero_grad()
 
         tgt_out = tgt[1:, :]
         loss = loss_fn(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
 
-        # loss.backward()
+        loss.backward()
         # Scales the loss, and calls backward()
         # to create scaled gradients
-        scaler.scale(loss).backward()
+        # scaler.scale(loss).backward()
 
 
-        # optimizer.step()
+        optimizer.step()
         # Unscales gradients and calls
         # or skips optimizer.step()
-        scaler.step(optimizer)
+        # scaler.step(optimizer)
 
 
         losses += loss.item()
@@ -202,7 +202,7 @@ def train_epoch(model, optimizer):
 
 
         # Updates the scale for next iteration
-        scaler.update()
+        # scaler.update()
 
 
         index+=1
