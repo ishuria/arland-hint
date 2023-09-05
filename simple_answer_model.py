@@ -10,10 +10,10 @@ from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequ
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 30000
+TRAIN_END_INDEX = 50000
 
-EVAL_START_INDEX = 30001
-EVAL_END_INDEX = 40000
+EVAL_START_INDEX = 50001
+EVAL_END_INDEX = 60000
 
 # transformer参数
 EMB_SIZE = 512
