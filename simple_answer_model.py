@@ -19,7 +19,7 @@ EVAL_END_INDEX = 60000
 EMB_SIZE = 512
 NHEAD = 8
 FFN_HID_DIM = 512
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 NUM_ENCODER_LAYERS = 3
 NUM_DECODER_LAYERS = 3
 
@@ -164,7 +164,7 @@ def train_epoch(model, optimizer):
 
     index = 0
     for src, tgt in train_dataloader:
-        print("train_epoch: index = ", index, ", total = ", train_dataloader.__len__())
+        print("train_epoch: index = ", index)
         src = src.to(DEVICE)
         tgt = tgt.to(DEVICE)
 
@@ -184,7 +184,6 @@ def train_epoch(model, optimizer):
         losses += loss.item()
 
         index+=1
-        torch.cuda.empty_cache()
 
     return losses / len(train_dataloader)
 
