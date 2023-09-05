@@ -184,6 +184,7 @@ def train_epoch(model, optimizer):
         losses += loss.item()
 
         index+=1
+        torch.cuda.empty_cache()
 
     return losses / len(train_dataloader)
 
