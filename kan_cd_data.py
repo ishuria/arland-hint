@@ -1,3 +1,5 @@
+import json
+
 import torch
 from typing import Iterable, List
 from util.db_util import open_database
@@ -19,7 +21,7 @@ def get_index_id_mapping():
     index_id_map = {}
     db = open_database()
     cursor = db.cursor()
-    cursor.execute("select id from item_index where subject = 4 and department = 3 and item_type = 1;")
+    cursor.execute("select id from item_index where subject = 4 and department = 3;")
     results = cursor.fetchall()
     for i in range(len(results)):
         index_id_map[i + 1] = results[i][0]
@@ -82,17 +84,17 @@ SPECIAL_SYMBOLS = ['<unk>', '<pad>', '<bos>', '<eos>', '<sep>']
 print("start build_vocab_from_iterator")
 vocab_transform = {}
 
-# train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
-# vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
-#                                                  min_freq=1,
-#                                                  specials=SPECIAL_SYMBOLS,
-#                                                  special_first=True)
-#
-# train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
-# vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
-#                                                  min_freq=1,
-#                                                  specials=SPECIAL_SYMBOLS,
-#                                                  special_first=True)
+train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
+vocab_transform[SRC] = build_vocab_from_iterator(yield_tokens(train_iter, SRC),
+                                                 min_freq=1,
+                                                 specials=SPECIAL_SYMBOLS,
+                                                 special_first=True)
+
+train_iter = build_data_set(start_index=TRAIN_START_INDEX, end_index=EVAL_END_INDEX)
+vocab_transform[TGT] = build_vocab_from_iterator(yield_tokens(train_iter, TGT),
+                                                 min_freq=1,
+                                                 specials=SPECIAL_SYMBOLS,
+                                                 special_first=True)
 print("finished build_vocab_from_iterator")
 
 
@@ -103,9 +105,9 @@ def tensor_transform(token_ids: List[int]):
                       torch.tensor([EOS_IDX])))
 
 
-# for side in [SRC, TGT]:
-#     text_transform[side] = sequential_transforms(vocab_transform[side],  # Numericalization
-#                                                  tensor_transform)  # Add BOS/EOS and create tensor
+for side in [SRC, TGT]:
+    text_transform[side] = sequential_transforms(vocab_transform[side],  # Numericalization
+                                                 tensor_transform)  # Add BOS/EOS and create tensor
 
 
 # function to generate output sequence using greedy algorithm
@@ -132,31 +134,60 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
     return ys
 
 
-# for index in INDEX_ID_MAP:
-#     if index <= EVAL_START_INDEX:
-#         continue
-#     src_sentence = read_file_content(INDEX_ID_MAP[index], ['content'])
-#     answer_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['answer'])
-#     src = text_transform[SRC](src_sentence).view(-1, 1)
-#     num_tokens = src.shape[0]
-#     src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
-#     tgt_tokens = greedy_decode(model, src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
-#     print("----------------------")
-#     print("original question: ", read_file_content_as_string(INDEX_ID_MAP[index], ['content']))
-#     print("original answer: ", answer_sentence)
-#     print("predicted answer: ",
-#           " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace(
-#               "<eos>", ""))
+loss_fn = torch.nn.CrossEntropyLoss(ignore_index=PAD_IDX)
+
+
+OUTPUT_FOLDER = "/home/len/knowledge-data/"
+# 加载全部知识点
+knowledge_list = []
+knowledge_index_map = {}
+with open(OUTPUT_FOLDER + 'class.txt', 'r') as f:
+    knowledge_list = [line.rstrip('\n') for line in f]
+
+for i in range(len(knowledge_list)):
+    knowledge_index_map[knowledge_list[i]] = i + 1
+
+
+item_file = ['item_id,knowledge_code']
+train_file = ['user_id,item_id,score']
+test_file = ['user_id,item_id,score']
 
 for index in INDEX_ID_MAP:
-    src_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['content'], True)
-    hint_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['hint'], True)
-    knowledge_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['knowledge'], True)
-    auto_knowledge_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['auto_knowledge'], True)
-    if '图' in src_sentence:
+    if index <= EVAL_START_INDEX:
         continue
-    print(INDEX_ID_MAP[index])
-    print('answer question: ', src_sentence, '\nhint: ', hint_sentence, '\nknowledge: ', knowledge_sentence, auto_knowledge_sentence)
-    answer_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['answer'], True)
-    print('answer: ', answer_sentence)
+    src_sentence = read_file_content(INDEX_ID_MAP[index], ['content', 'hint'])
+    answer_sentence = read_file_content(INDEX_ID_MAP[index], ['answer'])
 
+    item_knowledge_name_list = read_file_content(INDEX_ID_MAP[index], ['knowledge'])
+    item_knowledge_id_list = []
+    for item_knowledge_name in item_knowledge_name_list:
+        if item_knowledge_name == '<sep>':
+            continue
+        item_knowledge_id_list.append(knowledge_index_map[item_knowledge_name])
+    item_file.append(str(INDEX_ID_MAP[index]) + ',' + json.dumps(item_knowledge_id_list))
+
+
+    src = text_transform[SRC](src_sentence).view(-1, 1)
+    num_tokens = src.shape[0]
+    src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool)
+    tgt_tokens = greedy_decode(model, src, src_mask, max_len=num_tokens + 5, start_symbol=BOS_IDX).flatten()
+    print("----------------------")
+    print("original question: ", src_sentence)
+    print("original answer: ", answer_sentence)
+    pred_answer = " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace(
+              "<eos>", "")
+    print("predicted answer: ", pred_answer)
+
+    # print(torch.tensor(text_transform[TGT](answer_sentence), dtype=torch.int32).dtype)
+    # print(tgt_tokens.dtype)
+    loss = loss_fn(torch.tensor(text_transform[TGT](answer_sentence), dtype=torch.float32), torch.tensor(tgt_tokens.cpu(), dtype=torch.float32))
+    print(loss)
+    if index <= EVAL_START_INDEX + 0.7 * (EVAL_END_INDEX - EVAL_START_INDEX):
+        train_file.append('1,' + str(INDEX_ID_MAP[index]) + ',' + str(loss))
+    else:
+        test_file.append('1,' + str(INDEX_ID_MAP[index]) + ',' + str(loss))
+
+
+print(item_file)
+print(train_file)
+print(test_file)

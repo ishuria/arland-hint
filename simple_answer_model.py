@@ -9,20 +9,20 @@ from hint_data_set import HintDataSet
 from transformer import Seq2SeqTransformer, create_mask, generate_square_subsequent_mask
 
 # Creates once at the beginning of training
-# scaler = torch.cuda.amp.GradScaler()
+scaler = torch.cuda.amp.GradScaler()
 
 # 训练、验证参数
 TRAIN_START_INDEX = 1
-TRAIN_END_INDEX = 20000
+TRAIN_END_INDEX = 30000
 
-EVAL_START_INDEX = 20001
-EVAL_END_INDEX = 25000
+EVAL_START_INDEX = 30001
+EVAL_END_INDEX = 36000
 
 # transformer参数
 EMB_SIZE = 512
 NHEAD = 8
 FFN_HID_DIM = 512
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 NUM_ENCODER_LAYERS = 3
 NUM_DECODER_LAYERS = 3
 
@@ -38,7 +38,7 @@ def get_index_id_mapping():
     index_id_map = {}
     db = open_database()
     cursor = db.cursor()
-    cursor.execute("select id from item_index where subject = 4 and department = 3;")
+    cursor.execute("select id from item_index where subject = 4 and department = 3 and item_type = 3;")
     results = cursor.fetchall()
     for i in range(len(results)):
         index_id_map[i + 1] = results[i][0]
@@ -166,8 +166,10 @@ def train_epoch(model, optimizer):
     train_dataloader = DataLoader(train_iter, batch_size=BATCH_SIZE, collate_fn=collate_fn)
 
     index = 0
+    total = train_dataloader.__len__()
     for src, tgt in train_dataloader:
-        print("train_epoch: index = ", index)
+        print("train_epoch: index = ", index, ", total = ", total)
+
         src = src.to(DEVICE)
         tgt = tgt.to(DEVICE)
 
@@ -176,25 +178,25 @@ def train_epoch(model, optimizer):
         src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input, DEVICE)
 
         # Casts operations to mixed precision
-        # with torch.cuda.amp.autocast():
+        with torch.cuda.amp.autocast():
             # loss = model(data)
-        logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
+            logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
 
         optimizer.zero_grad()
 
         tgt_out = tgt[1:, :]
         loss = loss_fn(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
 
-        loss.backward()
+        # loss.backward()
         # Scales the loss, and calls backward()
         # to create scaled gradients
-        # scaler.scale(loss).backward()
+        scaler.scale(loss).backward()
 
 
-        optimizer.step()
+        # optimizer.step()
         # Unscales gradients and calls
         # or skips optimizer.step()
-        # scaler.step(optimizer)
+        scaler.step(optimizer)
 
 
         losses += loss.item()
@@ -202,7 +204,7 @@ def train_epoch(model, optimizer):
 
 
         # Updates the scale for next iteration
-        # scaler.update()
+        scaler.update()
 
 
         index+=1

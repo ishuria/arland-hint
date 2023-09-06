@@ -1,6 +1,7 @@
 import os
 from .config_util import DATA_FOLDER
 
+
 # 每10万个记录形成一个文件夹
 # levelOne/levelTwo/levelThree/dividend
 def index_to_path(item_index: int):
@@ -16,17 +17,20 @@ def index_to_path(item_index: int):
     levelOne = item_index % 100;
     item_index //= 100
     return str(levelOne) + os.sep + str(levelTwo) + os.sep + str(levelThree) + os.sep + str(dividend)
-    
-def read_file_content(item_index: int, categories: list):
+
+
+def read_file_content(item_index: int, categories: list, no_sep: bool):
     list = []
     for category in categories:
         _list = []
         with open(DATA_FOLDER + index_to_path(item_index) + os.sep + category + '.txt', 'r') as f:
             _list = [line.rstrip('\n') for line in f]
         list.extend(_list)
-        list.append('<sep>')
+        if not no_sep:
+            list.append('<sep>')
     return list
 
-def read_file_content_as_string(item_index: int, categories: list):
-    list = read_file_content(item_index, categories)
+
+def read_file_content_as_string(item_index: int, categories: list, no_sep: bool):
+    list = read_file_content(item_index, categories, no_sep)
     return "".join(list)
