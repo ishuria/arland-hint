@@ -23,6 +23,8 @@ def read_file_content(item_index: int, categories: list, no_sep: bool):
     list = []
     for category in categories:
         _list = []
+        if not os.path.isfile(DATA_FOLDER + index_to_path(item_index) + os.sep + category + '.txt'):
+            continue
         with open(DATA_FOLDER + index_to_path(item_index) + os.sep + category + '.txt', 'r') as f:
             _list = [line.rstrip('\n') for line in f]
         list.extend(_list)
