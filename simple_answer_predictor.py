@@ -148,15 +148,27 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
 #           " ".join(vocab_transform[TGT].lookup_tokens(list(tgt_tokens.cpu().numpy()))).replace("<bos>", "").replace(
 #               "<eos>", ""))
 
+def list_to_file(file_name: str, content: list):
+    with open(file_name, 'w', encoding="utf-8") as f:
+        for s in content:
+            f.write(s + '\n')
+
+
+contents = []
 for index in INDEX_ID_MAP:
-    src_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['content'], True)
+    content_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['content'], True)
     hint_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['hint'], True)
-    knowledge_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['knowledge'], True)
-    auto_knowledge_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['auto_knowledge'], True)
-    if '图' in src_sentence:
+    knowledge_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['knowledge', 'auto_knowledge'], True)
+    answer_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['answer'], True)
+    if '图' in content_sentence:
+        continue
+    if len(hint_sentence) == 0:
+        continue
+    if 'A' in answer_sentence and 'B' in answer_sentence and 'C' in answer_sentence and 'D' in answer_sentence:
         continue
     print(INDEX_ID_MAP[index])
-    print('answer question: ', src_sentence, '\nhint: ', hint_sentence, '\nknowledge: ', knowledge_sentence, auto_knowledge_sentence)
-    answer_sentence = read_file_content_as_string(INDEX_ID_MAP[index], ['answer'], True)
+    print('answer question: ', content_sentence, '\nhint: ', hint_sentence, '\nknowledge: ', knowledge_sentence)
     print('answer: ', answer_sentence)
+    contents.append('\t'.join([str(INDEX_ID_MAP[index]), content_sentence, hint_sentence, knowledge_sentence, answer_sentence]))
+list_to_file('data.txt', contents)
 
