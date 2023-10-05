@@ -166,6 +166,8 @@ for index in INDEX_ID_MAP:
         continue
     if 'A' in answer_sentence and 'B' in answer_sentence and 'C' in answer_sentence and 'D' in answer_sentence:
         continue
+    if '故' in hint_sentence:
+        continue
     print(INDEX_ID_MAP[index])
     print('answer question: ', content_sentence, '\nhint: ', hint_sentence, '\nknowledge: ', knowledge_sentence)
     print('answer: ', answer_sentence)
