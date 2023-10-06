@@ -1,5 +1,6 @@
 from util.db_util import open_database
 from util.file_util import read_file_content, read_file_content_as_string
+import random
 import json
 
 # OUTPUT_FOLDER = "/home/len/knowledge-data/"
@@ -51,9 +52,15 @@ print("total knowledge: ", len(knowledge_map))
 with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
     class_file.write('\n'.join(knowledge_list))
 
+
+
+# 乱序列表
+shuffled_index_list = list(range(0, EVAL_END_INDEX - TRAIN_START_INDEX + 1))
+random.shuffle(shuffled_index_list)
+
 train_list = []
 for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
-    index = INDEX_ID_MAP[i + 1]
+    index = INDEX_ID_MAP[shuffled_index_list[i] + 1]
     content = read_file_content_as_string(index, ['content', 'answer'], True)
     content = content.replace('<sep>', '')
     knowledge_list = read_file_content(index, ['knowledge'], True)
@@ -69,7 +76,7 @@ with open(OUTPUT_FOLDER + 'train.txt', 'w') as train_file:
 
 eval_list = []
 for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
-    index = INDEX_ID_MAP[i + 1]
+    index = INDEX_ID_MAP[shuffled_index_list[i] + 1]
     content = read_file_content_as_string(index, ['content', 'answer'], True)
     content = content.replace('<sep>', '')
     knowledge_list = read_file_content(index, ['knowledge'], True)
