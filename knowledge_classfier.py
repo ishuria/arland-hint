@@ -55,7 +55,7 @@ with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
 
 
 # 乱序列表
-shuffled_index_list = list(range(0, EVAL_END_INDEX - TRAIN_START_INDEX + 1))
+shuffled_index_list = list(range(0, EVAL_END_INDEX - TRAIN_START_INDEX + 2))
 random.shuffle(shuffled_index_list)
 
 train_list = []
