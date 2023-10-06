@@ -23,7 +23,7 @@ def get_knowledge_name_mapping():
 
 get_knowledge_name_mapping()
 
-print(knowledge_name_map)
+# print(knowledge_name_map)
 
 # 序号 -> id
 def get_index_id_mapping():
