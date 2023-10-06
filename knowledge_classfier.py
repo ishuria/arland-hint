@@ -14,6 +14,8 @@ EVAL_START_INDEX = 12001
 EVAL_END_INDEX = 14000
 
 knowledge_name_map = {}
+
+
 def get_knowledge_name_mapping():
     with open('./knowledge_mapping.txt', 'r') as f:
         _list = [line.rstrip('\n') for line in f]
@@ -21,7 +23,9 @@ def get_knowledge_name_mapping():
         key, val = _knowledge_name_line.rsplit(' ', 1)
         knowledge_name_map[key.rstrip()] = val
 
+
 get_knowledge_name_mapping()
+
 
 # print(knowledge_name_map)
 
@@ -65,7 +69,6 @@ print("total knowledge: ", len(knowledge_map))
 
 with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
     class_file.write('\n'.join(knowledge_list))
-
 
 # 乱序列表
 shuffled_index_list = list(range(0, EVAL_END_INDEX - TRAIN_START_INDEX + 2))
