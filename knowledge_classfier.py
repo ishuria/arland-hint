@@ -13,6 +13,18 @@ TRAIN_END_INDEX = 12000
 EVAL_START_INDEX = 12001
 EVAL_END_INDEX = 14000
 
+knowledge_name_map = {}
+def get_knowledge_name_mapping():
+    with open('./knowledge_mapping.txt', 'r') as f:
+        _list = [line.rstrip('\n') for line in f]
+    for _knowledge_name_line in _list:
+        key, val = _knowledge_name_line.rsplit(' ', 1)
+        if key in knowledge_name_map:
+            knowledge_name_map[key].append()
+        else:
+            knowledge_name_map[key] = [val]
+
+get_knowledge_name_mapping()
 
 # 序号 -> id
 def get_index_id_mapping():
@@ -39,8 +51,11 @@ for i in range(len(INDEX_ID_MAP)):
     for knowledge in knowledge_list:
         if knowledge == '<sep>':
             continue
-        if knowledge not in knowledge_map:
-            knowledge_map[knowledge] = knowledge_index
+        mapped_knowledge_name = knowledge
+        if knowledge in knowledge_name_map:
+            mapped_knowledge_name = knowledge_name_map[knowledge]
+        if mapped_knowledge_name not in knowledge_map:
+            knowledge_map[mapped_knowledge_name] = knowledge_index
             knowledge_index += 1
 
 knowledge_list = []
@@ -51,7 +66,6 @@ print("total knowledge: ", len(knowledge_map))
 
 with open(OUTPUT_FOLDER + 'class.txt', 'w') as class_file:
     class_file.write('\n'.join(knowledge_list))
-
 
 
 # 乱序列表
@@ -68,7 +82,10 @@ for i in range(TRAIN_START_INDEX, TRAIN_END_INDEX + 1):
     for knowledge in knowledge_list:
         if knowledge == '<sep>':
             continue
-        knowledge_id_list.append(knowledge_map[knowledge])
+        mapped_knowledge_name = knowledge
+        if knowledge in knowledge_name_map:
+            mapped_knowledge_name = knowledge_name_map[knowledge]
+        knowledge_id_list.append(knowledge_map[mapped_knowledge_name])
     train_list.append(content + '\t' + str(knowledge_id_list[0]))
 
 with open(OUTPUT_FOLDER + 'train.txt', 'w') as train_file:
@@ -84,7 +101,10 @@ for i in range(EVAL_START_INDEX, EVAL_END_INDEX + 1):
     for knowledge in knowledge_list:
         if knowledge == '<sep>':
             continue
-        knowledge_id_list.append(knowledge_map[knowledge])
+        mapped_knowledge_name = knowledge
+        if knowledge in knowledge_name_map:
+            mapped_knowledge_name = knowledge_name_map[knowledge]
+        knowledge_id_list.append(knowledge_map[mapped_knowledge_name])
     eval_list.append(content + '\t' + str(knowledge_id_list[0]))
 
 with open(OUTPUT_FOLDER + 'eval.txt', 'w') as eval_file:
