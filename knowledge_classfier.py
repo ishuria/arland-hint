@@ -19,10 +19,7 @@ def get_knowledge_name_mapping():
         _list = [line.rstrip('\n') for line in f]
     for _knowledge_name_line in _list:
         key, val = _knowledge_name_line.rsplit(' ', 1)
-        if key in knowledge_name_map:
-            knowledge_name_map[key].append()
-        else:
-            knowledge_name_map[key] = [val]
+        knowledge_name_map[key] = val
 
 get_knowledge_name_mapping()
 
