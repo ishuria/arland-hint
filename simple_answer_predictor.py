@@ -19,7 +19,7 @@ def get_index_id_mapping():
     index_id_map = {}
     db = open_database()
     cursor = db.cursor()
-    cursor.execute("select id from item_index where subject = 4 and department = 3 and item_type = 1;")
+    cursor.execute("select id from item_index_16 where item_type = 1 and is_chinese = 1 and `ignore` = 0;")
     results = cursor.fetchall()
     for i in range(len(results)):
         index_id_map[i + 1] = results[i][0]
@@ -172,5 +172,5 @@ for index in INDEX_ID_MAP:
     print('answer question: ', content_sentence, '\nhint: ', hint_sentence, '\nknowledge: ', knowledge_sentence)
     print('answer: ', answer_sentence)
     contents.append('\t'.join([str(INDEX_ID_MAP[index]), content_sentence, hint_sentence, knowledge_sentence, answer_sentence]))
-list_to_file('data.txt', contents)
+list_to_file('/home/len/information-hint-data/kancd-data.txt', contents)
 
