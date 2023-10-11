@@ -169,7 +169,7 @@ for index in INDEX_ID_MAP:
     if '故' in hint_sentence:
         continue
     print(INDEX_ID_MAP[index])
-    content_sentence = content_sentence.replace("\n", " ")
+    content_sentence = content_sentence.replace("\t", " ")
     print('answer question: ', content_sentence, '\nhint: ', hint_sentence, '\nknowledge: ', knowledge_sentence)
     print('answer: ', answer_sentence)
     contents.append('\t'.join([str(INDEX_ID_MAP[index]), content_sentence, hint_sentence, knowledge_sentence, answer_sentence]))
