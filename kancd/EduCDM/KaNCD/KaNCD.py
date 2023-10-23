@@ -10,6 +10,7 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score, accuracy_score
 from EduCDM import CDM
+torch.set_printoptions(threshold=100000)
 
 
 class PosLinear(nn.Linear):
@@ -98,6 +99,8 @@ class Net(nn.Module):
         input_x = self.drop_2(torch.tanh(self.prednet_full2(input_x)))
         output_1 = torch.sigmoid(self.prednet_full3(input_x))
 
+        print("stat_emb", stat_emb)
+
         return output_1.view(-1)
 
 
@@ -152,8 +155,11 @@ class KaNCD(CDM):
             pred = self.net(user_id, item_id, knowledge_emb)
             y_pred.extend(pred.detach().cpu().tolist())
             y_true.extend(y.tolist())
+            # print("y_true = ", y_true)
+            # print("y_pred = ", y_pred)
+            # print("y_pred = ", np.round(y_pred))
 
-        return roc_auc_score(y_true, y_pred), accuracy_score(y_true, np.array(y_pred) >= 0.5)
+        return roc_auc_score(y_true, y_pred), accuracy_score(y_true, np.round(y_pred))
 
     def save(self, filepath):
         torch.save(self.net.state_dict(), filepath)

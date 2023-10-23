@@ -6,12 +6,22 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+torch.set_printoptions(threshold=100000)
 
+df = pd.read_csv("./kancd/data/new_train.csv")
+train_data, valid_data = train_test_split(df, test_size=0.2)
+test_data = valid_data.copy()
 
-train_data = pd.read_csv("/Users/xiangchaolei/len/train.csv")
-valid_data = pd.read_csv("/Users/xiangchaolei/len/test.csv")
-test_data = pd.read_csv("/Users/xiangchaolei/len/test.csv")
-df_item = pd.read_csv("/Users/xiangchaolei/len/item.csv")
+train_data = pd.DataFrame(train_data, columns = df.columns).reset_index()
+valid_data = pd.DataFrame(valid_data, columns = df.columns).reset_index()
+test_data = pd.DataFrame(test_data, columns = df.columns).reset_index()
+
+print("train_data = \n", train_data)
+print("valid_data = \n", valid_data)
+print("test_data = \n", test_data)
+
+df_item = pd.read_csv("./kancd/data/new_item.csv")
 item2knowledge = {}
 knowledge_set = set()
 for i, s in df_item.iterrows():
@@ -46,12 +56,10 @@ train_set, valid_set, test_set = [
 
 logging.getLogger().setLevel(logging.INFO)
 cdm = KaNCD(exer_n=item_n, student_n=user_n, knowledge_n=knowledge_n, mf_type='gmf', dim=20)
-# cdm.train(train_set, valid_set, epoch_n=3, device="cuda", lr=0.002)
 cdm.train(train_set, valid_set, epoch_n=3, device="cpu", lr=0.002)
 cdm.save("kancd.snapshot")
 
 cdm.load("kancd.snapshot")
-# auc, accuracy = cdm.eval(test_set, device="cuda")
 auc, accuracy = cdm.eval(test_set, device="cpu")
 print("auc: %.6f, accuracy: %.6f" % (auc, accuracy))
 
