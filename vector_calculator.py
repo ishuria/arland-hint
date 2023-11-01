@@ -3,6 +3,7 @@ from random import random
 import numpy as np
 import torch
 
+
 class VectorCalculator:
 
     def __init__(self, model_vector):
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     # student_knowledge_vector_calculator.print_model_vector()
     random_vector_calculator = VectorCalculator(random_vector)
     # random_vector_calculator.print_model_vector()
-    x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector, random_vector_calculator.indexed_model_vector))
+    x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
+                     random_vector_calculator.indexed_model_vector))
     topx = torch.topk(torch.Tensor(x), 3)
     print(topx)
-
