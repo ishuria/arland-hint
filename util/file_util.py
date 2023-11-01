@@ -5,9 +5,6 @@ from .config_util import DATA_FOLDER
 # 每10万个记录形成一个文件夹
 # levelOne/levelTwo/levelThree/dividend
 def index_to_path(item_index: int):
-    levelOne = 0
-    levelTwo = 0
-    levelThree = 0
     dividend = item_index % 100;
     item_index //= 100
     levelThree = item_index % 100;
