@@ -35,7 +35,8 @@ if __name__ == '__main__':
     for i in range(len(it_item_index_id_mapping)):
         index = it_item_index_id_mapping[i + 1]
         knowledge_list = read_file_content_as_array(index, ['knowledge_vector'], True)
-        print(knowledge_list)
+        indexed_knowledge_list = VectorCalculator(knowledge_list)
+        print(indexed_knowledge_list.indexed_model_vector)
     # random_vector = []
     # for i in range(len(student_knowledge_vector)):
     #     random_vector.append(random())
