@@ -1,5 +1,6 @@
 import os
 from .config_util import DATA_FOLDER
+import json
 
 
 # 每10万个记录形成一个文件夹
@@ -33,3 +34,7 @@ def read_file_content(item_index: int, categories: list, no_sep: bool):
 def read_file_content_as_string(item_index: int, categories: list, no_sep: bool):
     list = read_file_content(item_index, categories, no_sep)
     return "".join(list)
+
+def read_file_content_as_array(item_index: int, categories: list, no_sep: bool):
+    str_content = read_file_content_as_string(item_index, categories, no_sep)
+    return json.loads(str_content)

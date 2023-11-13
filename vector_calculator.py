@@ -2,6 +2,8 @@ import json
 from random import random
 import numpy as np
 import torch
+from util.file_util import read_file_content_as_array
+from util.db_util import get_it_item_index_id_mapping
 
 
 class VectorCalculator:
@@ -26,15 +28,17 @@ if __name__ == '__main__':
     with open('./kancd/student_knowledge_vector.json', 'r') as f:
         lines = "".join(f.readlines())
         student_knowledge_vector = json.loads(lines)
-    # print(student_knowledge_vector)
-    random_vector = []
-    for i in range(len(student_knowledge_vector)):
-        random_vector.append(random())
-    student_knowledge_vector_calculator = VectorCalculator(student_knowledge_vector)
-    # student_knowledge_vector_calculator.print_model_vector()
-    random_vector_calculator = VectorCalculator(random_vector)
-    # random_vector_calculator.print_model_vector()
-    x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
-                     random_vector_calculator.indexed_model_vector))
-    topx = torch.topk(torch.Tensor(x), 3)
-    print(topx)
+    
+    it_item_index_id_mapping = get_it_item_index_id_mapping()
+    print(it_item_index_id_mapping)
+    # random_vector = []
+    # for i in range(len(student_knowledge_vector)):
+    #     random_vector.append(random())
+    # student_knowledge_vector_calculator = VectorCalculator(student_knowledge_vector)
+    # # student_knowledge_vector_calculator.print_model_vector()
+    # random_vector_calculator = VectorCalculator(random_vector)
+    # # random_vector_calculator.print_model_vector()
+    # x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
+    #                  random_vector_calculator.indexed_model_vector))
+    # topx = torch.topk(torch.Tensor(x), 3)
+    # print(topx)
