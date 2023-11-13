@@ -31,12 +31,18 @@ if __name__ == '__main__':
     
     it_item_index_id_mapping = get_it_item_index_id_mapping()
     # print(it_item_index_id_mapping)
+    student_knowledge_vector_calculator = VectorCalculator(student_knowledge_vector)
 
     for i in range(len(it_item_index_id_mapping)):
         index = it_item_index_id_mapping[i + 1]
         knowledge_list = read_file_content_as_array(index, ['knowledge_vector'], True)
         indexed_knowledge_list = VectorCalculator(knowledge_list)
         print(indexed_knowledge_list.indexed_model_vector)
+        x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
+                     indexed_knowledge_list.indexed_model_vector))
+        topx = torch.topk(torch.Tensor(x), 3)
+        print(topx)
+
     # random_vector = []
     # for i in range(len(student_knowledge_vector)):
     #     random_vector.append(random())
