@@ -30,7 +30,12 @@ if __name__ == '__main__':
         student_knowledge_vector = json.loads(lines)
     
     it_item_index_id_mapping = get_it_item_index_id_mapping()
-    print(it_item_index_id_mapping)
+    # print(it_item_index_id_mapping)
+
+    for i in range(len(it_item_index_id_mapping)):
+        index = it_item_index_id_mapping[i + 1]
+        knowledge_list = read_file_content_as_array(index, ['knowledge_vector'], True)
+        print(knowledge_list)
     # random_vector = []
     # for i in range(len(student_knowledge_vector)):
     #     random_vector.append(random())
