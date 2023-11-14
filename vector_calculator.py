@@ -28,6 +28,9 @@ if __name__ == '__main__':
     with open('./kancd/student_knowledge_vector.json', 'r') as f:
         lines = "".join(f.readlines())
         student_knowledge_vector = json.loads(lines)
+
+    with open('/home/len/information-hint-data/class.txt', 'r') as f:
+        knowledges = "".join(f.readlines())
     
     it_item_index_id_mapping = get_it_item_index_id_mapping()
     # print(it_item_index_id_mapping)
@@ -41,7 +44,11 @@ if __name__ == '__main__':
         x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
                      indexed_knowledge_list.indexed_model_vector))
         topx = torch.topk(torch.Tensor(x), 3)
-        print(topx)
+        print(topx.item())
+        for knowledge_index in topx.item():
+            print(knowledges[knowledge_index])
+
+
 
     # random_vector = []
     # for i in range(len(student_knowledge_vector)):
