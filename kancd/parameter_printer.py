@@ -5,7 +5,7 @@ import numpy as np
 import torch
 # torch.set_printoptions(threshold=10000)
 
-df = pd.read_csv("./kancd/data/new_train.csv")
+df = pd.read_csv("./data/new_train.csv")
 train_data, valid_data = train_test_split(df, test_size=0.2)
 test_data = valid_data.copy()
 
@@ -17,7 +17,7 @@ print("train_data = \n", train_data)
 print("valid_data = \n", valid_data)
 print("test_data = \n", test_data)
 
-df_item = pd.read_csv("./kancd/data/new_item.csv")
+df_item = pd.read_csv("./data/new_item.csv")
 item2knowledge = {}
 knowledge_set = set()
 for i, s in df_item.iterrows():
@@ -28,7 +28,7 @@ for i, s in df_item.iterrows():
 batch_size = 32
 user_n = np.max(train_data['user_id'])
 item_n = np.max([np.max(train_data['item_id']), np.max(valid_data['item_id']), np.max(test_data['item_id'])])
-knowledge_n = np.max(list(knowledge_set))
+knowledge_n = 524 #np.max(list(knowledge_set))
 
 
 cdm = KaNCD(exer_n=item_n, student_n=user_n, knowledge_n=knowledge_n, mf_type='gmf', dim=20)
@@ -36,4 +36,7 @@ cdm.load("kancd.snapshot")
 
 for name, param in cdm.net.named_parameters():
     if param.requires_grad:
-        print(name, param.data)
+        # print(name, param.data)
+        print(name)
+        # if name == 'e_discrimination.weight':
+        #     print(name, param.data)

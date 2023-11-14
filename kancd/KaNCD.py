@@ -32,7 +32,7 @@ for i, s in df_item.iterrows():
 batch_size = 32
 user_n = np.max(train_data['user_id'])
 item_n = np.max([np.max(train_data['item_id']), np.max(valid_data['item_id']), np.max(test_data['item_id'])])
-knowledge_n = np.max(list(knowledge_set))
+knowledge_n = 524 #np.max(list(knowledge_set))
 
 
 def transform(user, item, item2knowledge, score, batch_size):
