@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 torch.set_printoptions(threshold=100000)
 
-df = pd.read_csv("./kancd/data/new_train.csv")
+df = pd.read_csv("./data/new_train.csv")
 train_data, valid_data = train_test_split(df, test_size=0.2)
 test_data = valid_data.copy()
 
@@ -21,7 +21,7 @@ print("train_data = \n", train_data)
 print("valid_data = \n", valid_data)
 print("test_data = \n", test_data)
 
-df_item = pd.read_csv("./kancd/data/new_item.csv")
+df_item = pd.read_csv("./data/new_item.csv")
 item2knowledge = {}
 knowledge_set = set()
 for i, s in df_item.iterrows():

@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 import torch
-# torch.set_printoptions(threshold=10000)
+torch.set_printoptions(threshold=10000)
 
 df = pd.read_csv("./data/new_train.csv")
 train_data, valid_data = train_test_split(df, test_size=0.2)
@@ -38,5 +38,5 @@ for name, param in cdm.net.named_parameters():
     if param.requires_grad:
         # print(name, param.data)
         print(name)
-        # if name == 'e_discrimination.weight':
+        # if name == 'prednet_full1.weight':
         #     print(name, param.data)
