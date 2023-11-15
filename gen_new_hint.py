@@ -43,6 +43,9 @@ if __name__ == "__main__":
         content = read_file_content_as_string(index, ['content'], True)
         knowledge = read_file_content_as_string(index, ['top_knowledge'], True)
 
+        print('题干: ', content)
+        print('个性化知识点: ', knowledge)
+
         request = '根据<题干>:' + content + '<知识点>:' + knowledge + '<生成提示信息>'
         response, history = model.chat(tokenizer, request, history=[])
         response = response.replace(request, '')
