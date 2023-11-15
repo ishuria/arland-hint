@@ -42,12 +42,16 @@ if __name__ == "__main__":
     for i in range(len(it_item_index_id_mapping)):
         index = it_item_index_id_mapping[i + 1]
         content = read_file_content_as_string(index, ['content'], True)
-        knowledge = read_file_content_as_string(index, ['top_knowledge'], True)
+
+        with open(DATA_FOLDER + index_to_path(index) + os.sep + 'top_knowledge.txt', 'r', encoding="utf-8") as f:
+            top_knowledges = [line.rstrip('\n') for line in f]
+        
+        top_knowledge_str = "|".join(top_knowledges)
 
         print('题干: ', content)
-        print('个性化知识点: ', knowledge)
+        print('个性化知识点: ', top_knowledge_str)
 
-        request = '根据<题干>:' + content + '<知识点>:' + knowledge + '<生成提示信息>'
+        request = '根据<题干>:' + content + '<知识点>:' + top_knowledge_str + '<生成提示信息>'
         response, history = model.chat(tokenizer, request, history=[])
         response = response.replace(request, '')
         response = response.replace('<题干>', '')
