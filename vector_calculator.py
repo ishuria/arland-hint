@@ -29,11 +29,10 @@ if __name__ == '__main__':
         lines = "".join(f.readlines())
         student_knowledge_vector = json.loads(lines)
 
-    with open('/home/len/information-hint-data/class.txt', 'r') as f:
-        print("[\""+"\",\"".join(f.readlines())+"\"]")
-        knowledges = json.loads("['"+"','".join(f.readlines())+"']")
+    with open('./class.txt', 'r') as f:
+        knowledges = [line.rstrip('\n') for line in f]
 
-    print(knowledges)
+    # print(knowledges)
     
     it_item_index_id_mapping = get_it_item_index_id_mapping()
     # print(it_item_index_id_mapping)
