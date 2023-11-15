@@ -56,7 +56,7 @@ if __name__ == "__main__":
         response = response.replace(request, '')
         response = response.replace('<题干>', '')
         response = response.replace(content, '')
-        response = response.replace(knowledge, '')
+        response = response.replace(top_knowledge_str, '')
         response = response.replace('<知识点>', '')
         response = response.replace('<生成提示信息>', '')
         response = response.replace('\n', '')
