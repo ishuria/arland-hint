@@ -44,7 +44,7 @@ if __name__ == '__main__':
         x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
                      indexed_knowledge_list.indexed_model_vector))
         topx = torch.topk(torch.Tensor(x), 3)
-        print(topx.item())
+        print(topx)
         for knowledge_index in topx.item():
             print(knowledges[knowledge_index])
 
