@@ -46,8 +46,8 @@ if __name__ == '__main__':
         topx = torch.topk(torch.Tensor(x), 3)
         # print(topx.values.item())
         for knowledge_index in topx.values:
-            print(knowledge_index)
-            # print(knowledges[knowledge_index])
+            print(knowledge_index.item())
+            print(knowledges[int(knowledge_index.item())])
 
 
 
