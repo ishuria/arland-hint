@@ -43,8 +43,7 @@ if __name__ == '__main__':
         knowledge_list = read_file_content_as_array(index, ['knowledge_vector'], True)
         indexed_knowledge_list = VectorCalculator(knowledge_list)
         print(indexed_knowledge_list.indexed_model_vector)
-        x = (np.subtract(student_knowledge_vector_calculator.indexed_model_vector,
-                     indexed_knowledge_list.indexed_model_vector))
+        x = (np.subtract(indexed_knowledge_list.indexed_model_vector,student_knowledge_vector_calculator.indexed_model_vector))
         topx = torch.topk(torch.Tensor(x), 3)
         # print(topx.values.item())
         for knowledge_index in topx.values:
