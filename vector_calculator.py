@@ -2,8 +2,10 @@ import json
 from random import random
 import numpy as np
 import torch
-from util.file_util import read_file_content_as_array
+import os
+from util.file_util import read_file_content_as_array, index_to_path
 from util.db_util import get_it_item_index_id_mapping
+from util.config_util import DATA_FOLDER
 
 
 class VectorCalculator:
@@ -46,10 +48,14 @@ if __name__ == '__main__':
         x = (np.subtract(indexed_knowledge_list.indexed_model_vector,student_knowledge_vector_calculator.indexed_model_vector))
         topx = torch.topk(torch.Tensor(x), 3)
         # print(topx.values.item())
+        top_knowledges = []
         for knowledge_index in topx.values:
             print(int(knowledge_index.item()))
             print(knowledges[int(knowledge_index.item())])
+            top_knowledges.append(knowledges[int(knowledge_index.item())])
 
+        with open(DATA_FOLDER + index_to_path(index) + os.sep + 'top_knowledge.txt', 'w') as eval_file:
+            eval_file.write('\n'.join(top_knowledges))
 
 
     # random_vector = []
