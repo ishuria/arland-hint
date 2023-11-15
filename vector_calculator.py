@@ -54,6 +54,7 @@ if __name__ == '__main__':
             print(knowledges[int(knowledge_index.item())])
             top_knowledges.append(knowledges[int(knowledge_index.item())])
 
+        print("writing to file: ", DATA_FOLDER + index_to_path(index) + os.sep + 'top_knowledge.txt')
         with open(DATA_FOLDER + index_to_path(index) + os.sep + 'top_knowledge.txt', 'w') as eval_file:
             eval_file.write('\n'.join(top_knowledges))
 
