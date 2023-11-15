@@ -32,6 +32,8 @@ if __name__ == '__main__':
     with open('/home/len/information-hint-data/class.txt', 'r') as f:
         print("[\""+"\",\"".join(f.readlines())+"\"]")
         knowledges = json.loads("[\""+"\",\"".join(f.readlines())+"\"]")
+
+    print(knowledges)
     
     it_item_index_id_mapping = get_it_item_index_id_mapping()
     # print(it_item_index_id_mapping)
