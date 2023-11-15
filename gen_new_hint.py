@@ -63,5 +63,5 @@ if __name__ == "__main__":
         response = response.replace('\n\r', '')
         print('提示信息: ', response)
         print("writing to file: ", DATA_FOLDER + index_to_path(index) + os.sep + 'new_hint.txt')
-        with open(DATA_FOLDER + index_to_path(index) + os.sep + 'new_hint.txt', 'w') as eval_file:
+        with open(DATA_FOLDER + index_to_path(index) + os.sep + 'new_hint.txt', 'w', encoding="utf-8") as eval_file:
             eval_file.write(response)
