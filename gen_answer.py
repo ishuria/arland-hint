@@ -4,9 +4,12 @@ import platform
 import signal
 from transformers import AutoTokenizer, AutoModel
 import readline
+from util.db_util import get_it_item_index_id_mapping
+from util.file_util import read_file_content_as_string, index_to_path
+from util.config_util import DATA_FOLDER, CHATGLM_6B_FOLDER
 
-tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True)
-model = AutoModel.from_pretrained("THUDM/chatglm-6b", trust_remote_code=True).half().cuda()
+tokenizer = AutoTokenizer.from_pretrained(CHATGLM_6B_FOLDER, trust_remote_code=True)
+model = AutoModel.from_pretrained(CHATGLM_6B_FOLDER, trust_remote_code=True).half().cuda()
 model = model.eval()
 
 os_name = platform.system()
@@ -72,9 +75,6 @@ def main():
         print(build_prompt(history), flush=True)
 
 
-DATA_FOLDER = "/home/len/information-hint-data/"
-
-
 # 每10万个记录形成一个文件夹
 # levelOne/levelTwo/levelThree/dividend
 def index_to_path(item_index: int):
@@ -116,22 +116,13 @@ for new_hint in new_hint_list:
     new_hint_map[id]=h
 
 if __name__ == "__main__":
-    # main()
-    response, history = model.chat(tokenizer, "你好", history=[])
-    print(response)
-    train_data_index = 1
-    item_file = []
-    score_file = []
-
-    total_score = 0.0
-    # new_hint_file = []
-    for train_data in train_datas:
-        print('index: ', train_data_index, ' of total: ', len(train_datas))
-        train_data_index += 1
-        id, content, hint, knowledge, answer = train_data.split('\t')
-        new_hint = new_hint_map[id]
-        print(new_hint)
-        request = '<回答选择题><题目>:' + content + '<提示>:' + new_hint
+    it_item_index_id_mapping = get_it_item_index_id_mapping()
+    for i in range(len(it_item_index_id_mapping)):
+        index = it_item_index_id_mapping[i + 1]
+        content = read_file_content_as_string(index, ['content'], True)
+        new_hint = read_file_content_as_string(index, ['new_hint'], True)
+        answer = read_file_content_as_string(index, ['new_hint'], True)
+        request = '<回答选择题><题干>:' + content + '<提示>:' + new_hint
         response, history = model.chat(tokenizer, request, history=[])
         # print('content: ', content)
         # print('hint: ', hint)
@@ -208,4 +199,3 @@ if __name__ == "__main__":
 
     list_to_file('/home/len/kancd-data/with_new_hint/item.csv', item_file)
     list_to_file('/home/len/kancd-data/with_new_hint/train.csv', score_file)
-    # list_to_file('/home/len/kancd-data/with_knowledge/new_hint.txt', new_hint_file)

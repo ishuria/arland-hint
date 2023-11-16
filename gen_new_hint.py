@@ -7,10 +7,10 @@ from transformers import AutoTokenizer, AutoModel
 import readline
 from util.db_util import get_it_item_index_id_mapping
 from util.file_util import read_file_content_as_string, index_to_path
-from util.config_util import DATA_FOLDER
+from util.config_util import DATA_FOLDER, CHATGLM_6B_FOLDER
 
-tokenizer = AutoTokenizer.from_pretrained("/home/len/Desktop/git/ChatGLM-6B/THUDM/chatglm-6b", trust_remote_code=True)
-model = AutoModel.from_pretrained("/home/len/Desktop/git/ChatGLM-6B/THUDM/chatglm-6b", trust_remote_code=True).half().cuda()
+tokenizer = AutoTokenizer.from_pretrained(CHATGLM_6B_FOLDER, trust_remote_code=True)
+model = AutoModel.from_pretrained(CHATGLM_6B_FOLDER, trust_remote_code=True).half().cuda()
 model = model.eval()
 
 os_name = platform.system()
