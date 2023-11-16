@@ -117,6 +117,8 @@ for new_hint in new_hint_list:
 
 if __name__ == "__main__":
     it_item_index_id_mapping = get_it_item_index_id_mapping()
+    score_file = []
+    total_score = 0
     for i in range(len(it_item_index_id_mapping)):
         index = it_item_index_id_mapping[i + 1]
         content = read_file_content_as_string(index, ['content'], True)
@@ -188,14 +190,13 @@ if __name__ == "__main__":
         for knowledge_str in knowledge_str_list:
             knowledge_id_list.append(knowledge_index_map[knowledge_str])
         # 写item
-        item_file.append(str(id) + ',' + json.dumps(knowledge_id_list))
+        # item_file.append(str(id) + ',' + json.dumps(knowledge_id_list))
         score_file.append('1,' + str(id) + ',' + str(score))
 
         total_score += score
-        print(total_score / train_data_index)
+        print("current average score: " ,total_score / (i+1))
 
-        if train_data_index >= 1000:
-            break
 
-    list_to_file('/home/len/kancd-data/with_new_hint/item.csv', item_file)
-    list_to_file('/home/len/kancd-data/with_new_hint/train.csv', score_file)
+
+    # list_to_file('/home/len/kancd-data/with_new_hint/item.csv', item_file)
+    # list_to_file('/home/len/kancd-data/with_new_hint/train.csv', score_file)
