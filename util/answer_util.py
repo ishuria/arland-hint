@@ -6,7 +6,7 @@ import re
 
 def extract_answer_from_str(answer_str: str):
     regex = r"正确答案为.*?([A-Z]*)|答.*?([A-Z]+)|正确答案是.*?([A-Z]+)"
-    matches = re.finditer(regex, test_str, re.MULTILINE)
+    matches = re.finditer(regex, answer_str, re.MULTILINE)
     for matchNum, match in enumerate(matches, start=1):
         # print ("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum = matchNum, start = match.start(), end = match.end(), match = match.group()))
         for groupNum in range(0, len(match.groups())):
