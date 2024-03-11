@@ -25,7 +25,7 @@ if __name__ == "__main__":
         item_id = id_item_id_map[index]
         content = read_file_content_as_string(index, ['content'], True)
         new_hint = read_file_content_as_string(index, ['new_hint'], True)
-        answer = read_file_content_as_string(index, ['new_hint'], True)
+        answer = read_file_content_as_string(index, ['answer'], True)
         request = '<回答选择题><题干>:' + content# + '<提示>:' + new_hint
         response, history = model.chat(tokenizer, request, history=[])
         # print('content: ', content)
@@ -95,7 +95,13 @@ if __name__ == "__main__":
         total_score += score
         print("current average score: " ,total_score / (i+1))
         
-        save_llm_answer('ChatGLM-6B', llm_original_answer, llm_answer_json, true_answer_json, score, item_id)
+        save_llm_answer('ChatGLM-6B', 
+                        llm_original_answer,
+                        answer, 
+                        llm_answer_json, 
+                        true_answer_json, 
+                        score, 
+                        item_id)
 
 
 

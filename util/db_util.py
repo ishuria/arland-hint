@@ -37,13 +37,20 @@ def get_it_item_index_id_item_id_mapping():
     db.close()
     return index_id_map, id_item_id_map
 
-def save_llm_answer(llm_name: str, llm_original_answer: str, llm_answer: str, true_answer: str, score: float, item_id: int):
+def save_llm_answer(llm_name: str, 
+                    llm_original_answer: str, 
+                    true_original_answer: str,
+                    llm_answer: str, 
+                    true_answer: str, 
+                    score: float, 
+                    item_id: int):
     db = open_database()
     cursor = db.cursor()
     cursor.execute("""
         INSERT INTO `ayesha`.`llm_answer`
         (`llm_name`,
         `llm_original_answer`,
+        `true_original_answer`,
         `llm_answer`,
         `true_answer`,
         `score`,
@@ -51,6 +58,7 @@ def save_llm_answer(llm_name: str, llm_original_answer: str, llm_answer: str, tr
         VALUES
         (%(llm_name)s,
         %(llm_original_answer)s,
+        %(true_original_answer)s,
         %(llm_answer)s,
         %(true_answer)s,
         %(score)s, 
@@ -58,6 +66,7 @@ def save_llm_answer(llm_name: str, llm_original_answer: str, llm_answer: str, tr
         """ ,{
             "llm_name": llm_name,
             "llm_original_answer": llm_original_answer,
+            "true_original_answer": true_original_answer,
             "llm_answer": llm_answer,
             "true_answer": true_answer,
             "score": score,
