@@ -4,7 +4,7 @@ import platform
 import signal
 from transformers import AutoTokenizer, AutoModel
 import readline
-from util.db_util import get_it_item_index_id_mapping
+from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer
 from util.file_util import read_file_content_as_string, read_file_content
 from util.config_util import DATA_FOLDER, CHATGLM_6B_FOLDER
 
@@ -17,15 +17,16 @@ clear_command = 'cls' if os_name == 'Windows' else 'clear'
 stop_stream = False
 
 if __name__ == "__main__":
-    it_item_index_id_mapping = get_it_item_index_id_mapping()
+    it_item_index_id_mapping, id_item_id_map = get_it_item_index_id_item_id_mapping()
     score_file = []
     total_score = 0
     for i in range(len(it_item_index_id_mapping)):
         index = it_item_index_id_mapping[i + 1]
+        item_id = id_item_id_map[index]
         content = read_file_content_as_string(index, ['content'], True)
         new_hint = read_file_content_as_string(index, ['new_hint'], True)
         answer = read_file_content_as_string(index, ['new_hint'], True)
-        request = '<回答选择题><题干>:' + content + '<提示>:' + new_hint
+        request = '<回答选择题><题干>:' + content# + '<提示>:' + new_hint
         response, history = model.chat(tokenizer, request, history=[])
         # print('content: ', content)
         # print('hint: ', hint)
@@ -44,6 +45,7 @@ if __name__ == "__main__":
         # new_hint_file.append(str(id) + ',' + response)
         # if train_data_index > 500:
         #    break
+        llm_original_answer = response
         if len(response) > 100:
             response = response[-100:]
         bot_answer = []
@@ -66,6 +68,7 @@ if __name__ == "__main__":
         if 'D' in answer:
             true_answer.append('D')
         print('true answer: ', true_answer)
+        llm_answer = json.dumps(true_answer)
 
         max_length = len(bot_answer)
         if len(true_answer) > len(bot_answer):
@@ -90,6 +93,8 @@ if __name__ == "__main__":
 
         total_score += score
         print("current average score: " ,total_score / (i+1))
+        
+        save_llm_answer('ChatGLM-6B', llm_original_answer, llm_answer, score, item_id)
 
 
 
