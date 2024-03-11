@@ -7,6 +7,7 @@ import readline
 from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer
 from util.file_util import read_file_content_as_string, read_file_content
 from util.config_util import DATA_FOLDER, CHATGLM_6B_FOLDER
+from util.answer_util import extract_answer_from_str
 
 tokenizer = AutoTokenizer.from_pretrained(CHATGLM_6B_FOLDER, trust_remote_code=True)
 model = AutoModel.from_pretrained(CHATGLM_6B_FOLDER, trust_remote_code=True).half().cuda()
@@ -46,16 +47,19 @@ if __name__ == "__main__":
         # if train_data_index > 500:
         #    break
         llm_original_answer = response
-        if len(response) > 100:
-            response = response[-100:]
+        extracted_answer = extract_answer_from_str(response)
+        if extracted_answer is None:
+            extracted_answer = response
+            if len(extracted_answer) > 100:
+                extracted_answer = extracted_answer[-100:]
         bot_answer = []
-        if 'A' in response:
+        if 'A' in extracted_answer:
             bot_answer.append('A')
-        if 'B' in response:
+        if 'B' in extracted_answer:
             bot_answer.append('B')
-        if 'C' in response:
+        if 'C' in extracted_answer:
             bot_answer.append('C')
-        if 'D' in response:
+        if 'D' in extracted_answer:
             bot_answer.append('D')
         print('bot answer: ', bot_answer)
         llm_answer_json = json.dumps(bot_answer)
