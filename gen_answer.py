@@ -58,6 +58,7 @@ if __name__ == "__main__":
         if 'D' in response:
             bot_answer.append('D')
         print('bot answer: ', bot_answer)
+        llm_answer_json = json.dumps(bot_answer)
         true_answer = []
         if 'A' in answer:
             true_answer.append('A')
@@ -68,7 +69,7 @@ if __name__ == "__main__":
         if 'D' in answer:
             true_answer.append('D')
         print('true answer: ', true_answer)
-        llm_answer = json.dumps(true_answer)
+        true_answer_json = json.dumps(true_answer)
 
         max_length = len(bot_answer)
         if len(true_answer) > len(bot_answer):
@@ -94,7 +95,7 @@ if __name__ == "__main__":
         total_score += score
         print("current average score: " ,total_score / (i+1))
         
-        save_llm_answer('ChatGLM-6B', llm_original_answer, llm_answer, score, item_id)
+        save_llm_answer('ChatGLM-6B', llm_original_answer, llm_answer_json, true_answer_json, score, item_id)
 
 
 
