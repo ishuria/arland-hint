@@ -40,7 +40,7 @@ if __name__ == "__main__":
         answer = read_file_content_as_string(index, ['answer'], True)
         request = '<回答选择题><题干>:' + content + '<提示>:' + hints
         if len(request) > 2048:
-            request = request[2048]
+            request = request[0:2048]
         response, history = model.chat(tokenizer, request, history=[])
         # print('content: ', content)
         # print('hint: ', hint)
