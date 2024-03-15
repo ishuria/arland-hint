@@ -1,6 +1,7 @@
 import json
 import os
 import platform
+import random
 import signal
 from transformers import AutoTokenizer, AutoModel
 import readline
@@ -21,10 +22,13 @@ if __name__ == "__main__":
     it_item_index_id_mapping, id_item_id_map = get_difference_it_item_index_id_item_id_mapping()
     hints = ""
     for i in range(len(it_item_index_id_mapping)):
+        if random.random() >= 0.1:
+            continue
         index = it_item_index_id_mapping[i + 1]
         item_id = id_item_id_map[index]
         hint = read_file_content_as_string(index, ['hint'], True)
         hints = hints + hint + ";"
+    print(hints)
     score_file = []
     total_score = 0
     for i in range(len(it_item_index_id_mapping)):
