@@ -22,6 +22,7 @@ if __name__ == "__main__":
     score_file = []
     total_score = 0
     for i in range(len(it_item_index_id_mapping)):
+        print("index: ", i + 1, " of total: ", len(it_item_index_id_mapping))
         index = it_item_index_id_mapping[i + 1]
         item_id = id_item_id_map[index]
         content = read_file_content_as_string(index, ['content'], True)

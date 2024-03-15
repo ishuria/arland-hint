@@ -45,6 +45,7 @@ def save_llm_answer(llm_name: str,
                     score: float, 
                     item_id: int):
     db = open_database()
+    db.set_charset_collation('utf8mb4')
     cursor = db.cursor()
     cursor.execute("""
         INSERT INTO `ayesha`.`llm_answer`
