@@ -41,5 +41,5 @@ if __name__ == "__main__":
             item_id_difference_map[item_id] = 0.0
         if len(v['true_answer']) == 0:
             continue
-        item_id_difference_map[item_id] = v['llm_answer'] / v['true_answer']
+        item_id_difference_map[item_id] = float(len(v['llm_answer'])) / float(len(v['true_answer']))
     print(item_id_difference_map)
