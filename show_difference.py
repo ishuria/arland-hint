@@ -43,7 +43,27 @@ if __name__ == "__main__":
             continue
         item_id_difference_map[item_id] = float(len(v['llm_answer'])) / float(len(v['true_answer']))
     item_id_difference_map = dict(sorted(item_id_difference_map.items(), key=lambda item: item[1]))
+
+    db = mysql.connector.connect(
+        # host="192.168.0.102",
+        host=DB_HOST,
+        user="root",
+        password="123456",
+        database="ayesha",
+        auth_plugin='mysql_native_password'
+        )
+    cursor = db.cursor()
     for k,v in item_id_difference_map.items():
         if v >= 4.0:
-            print(k)
+            cursor.execute("""
+        INSERT INTO `ayesha`.`difference_item`
+        (`item_id`)
+        VALUES
+        (%(item_id)s);
+        """ ,{
+            "item_id": k
+            })
+    cursor.close()
+    db.commit()
+    db.close()
     # print(item_id_difference_map)
