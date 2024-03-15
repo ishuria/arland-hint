@@ -28,9 +28,9 @@ if __name__ == "__main__":
         if item_id not in item_id_answer_map:
             item_id_answer_map[item_id] = {}
         if 'true_answer' not in item_id_answer_map[item_id]:
-            item_id_answer_map[item_id]['true_answer'] = {}
+            item_id_answer_map[item_id]['true_answer'] = set()
         if 'llm_answer' not in item_id_answer_map[item_id]:
-            item_id_answer_map[item_id]['llm_answer'] = {}
+            item_id_answer_map[item_id]['llm_answer'] = set()
         for llm_answer in llm_answer_list:
             item_id_answer_map[item_id]['llm_answer'].add(llm_answer)
         for true_answer in true_answer_list:
