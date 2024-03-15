@@ -42,4 +42,5 @@ if __name__ == "__main__":
         if len(v['true_answer']) == 0:
             continue
         item_id_difference_map[item_id] = float(len(v['llm_answer'])) / float(len(v['true_answer']))
+    item_id_difference_map = dict(sorted(item_id_difference_map.items(), key=lambda item: item[1]))
     print(item_id_difference_map)
