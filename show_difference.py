@@ -23,7 +23,7 @@ if __name__ == "__main__":
         item_id = results[i][0]
         llm_answer_json_str = results[i][1]
         llm_answer_list = json.loads(llm_answer_json_str)
-        true_answer_json_str = results[i][1]
+        true_answer_json_str = results[i][2]
         true_answer_list = json.loads(true_answer_json_str)
         if item_id not in item_id_answer_map:
             item_id_answer_map[item_id] = {}
