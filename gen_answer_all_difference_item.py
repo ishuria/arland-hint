@@ -22,7 +22,7 @@ if __name__ == "__main__":
     it_item_index_id_mapping, id_item_id_map = get_difference_it_item_index_id_item_id_mapping()
     hints = ""
     for i in range(len(it_item_index_id_mapping)):
-        if random.random() >= 0.1:
+        if random.random() >= 0.05:
             continue
         index = it_item_index_id_mapping[i + 1]
         item_id = id_item_id_map[index]
