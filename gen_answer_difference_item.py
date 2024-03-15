@@ -100,7 +100,7 @@ if __name__ == "__main__":
         total_score += score
         print("current average score: " ,total_score / (i+1))
         
-        save_llm_answer('ChatGLM-6B', 
+        save_llm_answer('ChatGLM-6B-difference', 
                         llm_original_answer,
                         answer, 
                         llm_answer_json, 
