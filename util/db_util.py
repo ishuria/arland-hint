@@ -37,6 +37,20 @@ def get_it_item_index_id_item_id_mapping():
     db.close()
     return index_id_map, id_item_id_map
 
+def get_difference_it_item_index_id_item_id_mapping():
+    index_id_map = {}
+    id_item_id_map = {}
+    db = open_database()
+    cursor = db.cursor()
+    cursor.execute("select id.id, id.item_id from item_index_16 id inner join difference_item d on d.item_id = id.item_id where is_chinese = 1 and `ignore` = 0 and knowledge = 1 and item_type = 1;")
+    results = cursor.fetchall()
+    for i in range(len(results)):
+        index_id_map[i + 1] = results[i][0]
+        id_item_id_map[results[i][0]] = results[i][1]
+    cursor.close()
+    db.close()
+    return index_id_map, id_item_id_map
+
 def save_llm_answer(llm_name: str, 
                     llm_original_answer: str, 
                     true_original_answer: str,
@@ -76,4 +90,3 @@ def save_llm_answer(llm_name: str,
     cursor.close()
     db.commit()
     db.close()
-    
