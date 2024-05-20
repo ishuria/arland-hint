@@ -70,8 +70,8 @@ if __name__ == '__main__':
         if hint is None or hint == '':
             continue
 
-        request = '<回答选择题>:' + content + '\n' + hint + '<回答请用"答案是A"的格式>'
-        # request = '<回答选择题>:' + content + '<回答请用"答案是A"的格式>'
+        # request = '<回答选择题>:' + content + '\n' + hint + '<回答请用"答案是A"的格式>'
+        request = '<回答选择题>:' + content + '<回答请用"答案是A"的格式>'
         response = call_with_prompt(request)
         llm_original_answer = json.dumps(response)
         text = response["output"]["text"]
