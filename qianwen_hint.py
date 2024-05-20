@@ -4,7 +4,7 @@ from http import HTTPStatus
 import dashscope
 import numpy as np
 
-from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, save_llm_hint
+from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, save_llm_hint, get_llm_hint
 from util.file_util import read_file_content_as_string, read_file_content
 from util.answer_util import extract_answer_from_str_qianwen
 
@@ -72,6 +72,11 @@ if __name__ == '__main__':
         if str(item_id) not in item_features:
             continue
 
+        hint = get_llm_hint("qwen_turbo_no_answer", item_id)
+        print(hint)
+        if hint is not None or hint != '':
+            continue
+
         min_knowledge_cd = [x-float(y) for (x,y) in zip(knowledge_cd, item_features[elements[0]])]
         min_knowledge_index = np.argmin(min_knowledge_cd)
         min_knowledge = knowledge_id_name_dict[str(min_knowledge_index + 1)]
@@ -80,11 +85,11 @@ if __name__ == '__main__':
         print(min_knowledge)
         print(answer)
 
-        request = '<结合问题与答案在知识点方向提示信息><问题>:' + content + '<知识点>:' + str(min_knowledge) + '<答案>:' + answer
+        request = '<结合问题与答案在知识点方向提示信息，不要带上答案><问题>:' + content + '<知识点>:' + str(min_knowledge) + '<答案>:' + answer
         response = call_with_prompt(request)
         llm_original_answer = json.dumps(response)
         hint = response["output"]["text"]
 
-        save_llm_hint('qwen_turbo',
+        save_llm_hint('qwen_turbo_no_answer',
                         hint,
                         item_id)
