@@ -90,3 +90,27 @@ def save_llm_answer(llm_name: str,
     cursor.close()
     db.commit()
     db.close()
+
+def save_llm_hint(llm_name: str,
+                    hint: str,
+                    item_id: int):
+    db = open_database()
+    db.set_charset_collation('utf8mb4')
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO `ayesha`.`llm_hint`
+        (`llm_name`,
+        `hint`,
+        `item_id`)
+        VALUES
+        (%(llm_name)s,
+        %(hint)s,
+        %(item_id)s);
+        """ ,{
+            "llm_name": llm_name,
+            "hint": hint,
+            "item_id": item_id
+            })
+    cursor.close()
+    db.commit()
+    db.close()
