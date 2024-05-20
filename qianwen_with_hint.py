@@ -65,7 +65,7 @@ if __name__ == '__main__':
         if str(item_id) not in item_features:
             continue
 
-        hint = get_llm_hint("qwen_turbo", item_id)
+        hint = get_llm_hint("qwen_turbo_no_answer", item_id)
         print(hint)
         if hint is None or hint == '':
             continue
@@ -129,7 +129,7 @@ if __name__ == '__main__':
         total_score += score
         print("current average score: ", total_score / (i + 1))
 
-        save_llm_answer('qwen_turbo_hint_3',
+        save_llm_answer('qwen_turbo_no_answer',
                         llm_original_answer,
                         answer,
                         llm_answer_json,
