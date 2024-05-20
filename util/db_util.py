@@ -119,7 +119,7 @@ def save_llm_hint(llm_name: str,
 def get_llm_hint(llm_name: str, item_id: int):
     db = open_database()
     cursor = db.cursor()
-    cursor.execute("select * from llm_hint where item_id = " + str(item_id) + " and llm_name = " + str(llm_name))
+    cursor.execute("select * from llm_hint where item_id = " + str(item_id) + " and llm_name = '" + str(llm_name) + "'")
     results = cursor.fetchall()
     hint = ""
     for i in range(len(results)):
