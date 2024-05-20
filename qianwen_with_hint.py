@@ -73,7 +73,7 @@ if __name__ == '__main__':
         min_knowledge_index = np.argmin(min_knowledge_cd)
         min_knowledge = knowledge_id_name_dict[str(min_knowledge_index + 1)]
 
-        request = '<回答选择题>:' + content + '<提示>:' + hint + '<回答请用"答案是A"的格式><不要依赖提示中的答案，自行判断>'
+        request = '<回答选择题>:' + content + '<提示>:' + hint + '<回答请用"答案是A"的格式>'
         # request = '<回答选择题>:' + content + '<回答请用"答案是A"的格式>'
         response = call_with_prompt(request)
         llm_original_answer = json.dumps(response)
