@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
         hint = get_llm_hint("qwen_turbo_no_answer", item_id)
         print(hint)
-        if hint is not None or hint != '':
+        if len(hint) != 0:
             continue
 
         min_knowledge_cd = [x-float(y) for (x,y) in zip(knowledge_cd, item_features[elements[0]])]
