@@ -85,7 +85,7 @@ if __name__ == '__main__':
         print(min_knowledge)
         print(answer)
 
-        request = '<结合问题与答案在知识点方向提示信息，不要带上答案><问题>:' + content + '<知识点>:' + str(min_knowledge) + '<答案>:' + answer
+        request = '<结合问题与答案在知识点方向提示信息><问题>:' + content + '<知识点>:' + str(min_knowledge)# + '<答案>:' + answer
         response = call_with_prompt(request)
         llm_original_answer = json.dumps(response)
         hint = response["output"]["text"]
