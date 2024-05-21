@@ -1,7 +1,7 @@
 import requests
 import json
 
-from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, save_llm_hint, get_llm_hint
+from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, save_llm_hint, get_llm_hint, get_llm_answer
 from util.file_util import read_file_content_as_string, read_file_content
 from util.answer_util import extract_answer_from_str_qianwen
 
@@ -59,6 +59,10 @@ if __name__ == '__main__':
 
         llm_original_answer = json.dumps(response)
         text = json.loads(response)["result"]
+
+        original_answer = get_llm_answer('ernie-3.5-128k', item_id)
+        if len(original_answer) != 0:
+            continue
 
         extracted_answer = extract_answer_from_str_qianwen(text)
         if extracted_answer is None:

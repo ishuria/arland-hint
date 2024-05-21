@@ -127,3 +127,15 @@ def get_llm_hint(llm_name: str, item_id: int):
     cursor.close()
     db.close()
     return hint
+
+def get_llm_answer(llm_name: str, item_id: int):
+    db = open_database()
+    cursor = db.cursor()
+    cursor.execute("select * from llm_answer where item_id = " + str(item_id) + " and llm_name = '" + str(llm_name) + "'")
+    results = cursor.fetchall()
+    original_answer = ""
+    for i in range(len(results)):
+        original_answer = results[i][2]
+    cursor.close()
+    db.close()
+    return original_answer
