@@ -1,3 +1,5 @@
+import time
+
 import requests
 import json
 
@@ -52,6 +54,7 @@ if __name__ == '__main__':
     it_item_index_id_mapping, id_item_id_map = get_it_item_index_id_item_id_mapping()
     total_score = 0
     for i in range(len(it_item_index_id_mapping)):
+        time.sleep(1.1)
         print("index: ", i + 1, " of total: ", len(it_item_index_id_mapping))
         index = it_item_index_id_mapping[i + 1]
         item_id = id_item_id_map[index]
