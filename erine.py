@@ -5,6 +5,10 @@ from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, 
 from util.file_util import read_file_content_as_string, read_file_content
 from util.answer_util import extract_answer_from_str_qianwen
 
+import requests
+import json
+
+
 
 def get_access_token():
     """
@@ -24,7 +28,7 @@ def get_access_token():
 
 
 def call_with_prompt(request, access_token):
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie-3.5-128k?access_token=" + access_token
+    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions?access_token=" + access_token
 
     payload = json.dumps({
         "messages": [
@@ -60,7 +64,7 @@ if __name__ == '__main__':
         llm_original_answer = json.dumps(response)
         text = json.loads(response)["result"]
 
-        original_answer = get_llm_answer('ernie-3.5-128k', item_id)
+        original_answer = get_llm_answer('ernie-3.5-8k', item_id)
         if len(original_answer) != 0:
             continue
 
@@ -114,7 +118,7 @@ if __name__ == '__main__':
         total_score += score
         print("current average score: ", total_score / (i + 1))
 
-        save_llm_answer('ernie-3.5-128k',
+        save_llm_answer('ernie-3.5-8k',
                         llm_original_answer,
                         answer,
                         llm_answer_json,
