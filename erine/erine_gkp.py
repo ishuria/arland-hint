@@ -182,7 +182,7 @@ if __name__ == '__main__':
         answer_clean = BeautifulSoup(answer_html, "html.parser").text
 
         knowledge_prompt = prompt + "题干：" + content_clean + "\n知识："
-        hint = call_with_prompt(knowledge_prompt, access_token)
+        hint = json.loads(call_with_prompt(knowledge_prompt, access_token))["result"]
 
         original_answer = get_llm_answer('erine_gkp', item_id)
         if len(original_answer) != 0:

@@ -237,7 +237,7 @@ if __name__ == '__main__':
             continue
 
         knowledge_prompt = prompt + "题干：" + content_clean + "\n知识："
-        hint = call_with_prompt(knowledge_prompt, access_token)
+        hint = json.loads(call_with_prompt(knowledge_prompt, access_token))["result"]
 
         request = hint + "\n" + content_clean + "\n<回答请用'答案是A'的格式>"
         response = call_with_prompt(request, access_token)
