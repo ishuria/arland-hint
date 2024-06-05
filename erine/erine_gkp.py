@@ -124,7 +124,7 @@ if __name__ == '__main__':
         knowledge_prompt = prompt + "题干：" + content_clean + "\n知识："
         hint = call_with_prompt(knowledge_prompt, access_token)
 
-        original_answer = get_llm_answer('ernie_gkp', item_id)
+        original_answer = get_llm_answer('erine_gkp', item_id)
         if len(original_answer) != 0:
             continue
 
@@ -184,7 +184,7 @@ if __name__ == '__main__':
         total_score += score
         print("current average score: ", total_score / (i + 1))
 
-        save_llm_answer('ernie_gkp',
+        save_llm_answer('erine_gkp',
                         llm_original_answer,
                         answer_clean,
                         llm_answer_json,
