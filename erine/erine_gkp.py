@@ -1,15 +1,10 @@
 import random
 import time
 
-import numpy as np
-import requests
-import json
 
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 
 from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, save_llm_hint, get_llm_hint, get_llm_answer
-from util.file_util import read_file_content_as_string, read_file_content
 from util.answer_util import extract_answer_from_str_qianwen
 
 import requests
