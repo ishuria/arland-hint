@@ -1,11 +1,10 @@
 import random
+import re
 import time
 
 
 from bs4 import BeautifulSoup
 
-from util.db_util import get_it_item_index_id_item_id_mapping, save_llm_answer, save_llm_hint, get_llm_hint, get_llm_answer
-from util.answer_util import extract_answer_from_str_qianwen
 
 import requests
 import json
@@ -15,11 +14,77 @@ def open_database():
     return mysql.connector.connect(
         host="127.0.0.1",
         user="root",
-        password="Lentopaz35628",
+        password="123456",
         database="ayesha",
         auth_plugin='mysql_native_password'
     )
 
+def extract_answer_from_str_qianwen(answer_str: str):
+    regex = r"答案是.*?([A-Z]*)|答案是：.*?([A-Z]+)"
+    matches = re.finditer(regex, answer_str, re.MULTILINE)
+    for matchNum, match in enumerate(matches, start=1):
+        # print ("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum = matchNum, start = match.start(), end = match.end(), match = match.group()))
+        for groupNum in range(0, len(match.groups())):
+            groupNum = groupNum + 1
+            if match.group(groupNum) is None:
+                continue
+            return match.group(groupNum)
+            # print ("Group {groupNum} found at {start}-{end}: {group}".format(groupNum = groupNum, start = match.start(groupNum), end = match.end(groupNum), group = match.group(groupNum)))
+    return None
+
+
+def save_llm_answer(llm_name: str,
+                    llm_original_answer: str,
+                    true_original_answer: str,
+                    llm_answer: str,
+                    true_answer: str,
+                    score: float,
+                    item_id: int):
+    db = open_database()
+    db.set_charset_collation('utf8mb4')
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO `ayesha`.`llm_answer`
+        (`llm_name`,
+        `llm_original_answer`,
+        `true_original_answer`,
+        `llm_answer`,
+        `true_answer`,
+        `score`,
+        `item_id`)
+        VALUES
+        (%(llm_name)s,
+        %(llm_original_answer)s,
+        %(true_original_answer)s,
+        %(llm_answer)s,
+        %(true_answer)s,
+        %(score)s, 
+        %(item_id)s);
+        """ ,{
+            "llm_name": llm_name,
+            "llm_original_answer": llm_original_answer,
+            "true_original_answer": true_original_answer,
+            "llm_answer": llm_answer,
+            "true_answer": true_answer,
+            "score": score,
+            "item_id": item_id
+            })
+    cursor.close()
+    db.commit()
+    db.close()
+
+
+def get_llm_answer(llm_name: str, item_id: int):
+    db = open_database()
+    cursor = db.cursor()
+    cursor.execute("select * from llm_answer where item_id = " + str(item_id) + " and llm_name = '" + str(llm_name) + "'")
+    results = cursor.fetchall()
+    original_answer = ""
+    for i in range(len(results)):
+        original_answer = results[i][2]
+    cursor.close()
+    db.close()
+    return original_answer
 
 def select_dataset(sql):
     db = open_database()
