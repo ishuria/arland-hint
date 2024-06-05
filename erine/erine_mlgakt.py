@@ -168,19 +168,19 @@ if __name__ == '__main__':
         "select * from item_index_16 where knowledge = 1 and `ignore` = 0 and is_chinese = 1 and is_empty = 0 and item_type = 1")
 
     knowledge_cd_str = ''
-    with open('./answer/erine.cd.txt', 'r', encoding="utf-8") as f:
+    with open('../answer/erine.cd.txt', 'r', encoding="utf-8") as f:
         for line in f:
             knowledge_cd_str += line.rstrip('\n')
     knowledge_cd = json.loads(knowledge_cd_str)
 
     knowledge_id_name_dict = {}
-    with open('./answer/item.knowledge.name', 'r', encoding="utf-8") as f:
+    with open('../answer/item.knowledge.name', 'r', encoding="utf-8") as f:
         for line in f:
             elements = line.rstrip('\n').split('\t')
             knowledge_id_name_dict[int(elements[1])] = elements[0]
 
     item_features = {}
-    with open('./answer/item.content', 'r', encoding="utf-8") as f:
+    with open('../answer/item.content', 'r', encoding="utf-8") as f:
         for line in f:
             feature = []
             elements = line.rstrip('\n').split('\t')
