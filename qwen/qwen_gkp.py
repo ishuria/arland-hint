@@ -109,11 +109,13 @@ def call_with_prompt(prompt):
             # 如果调用成功，则打印模型的输出
             if response.status_code == HTTPStatus.OK:
                 print(response)
-                return response
+                return response, True
             # 如果调用失败，则打印出错误码与失败信息
             else:
                 print(response.code)
                 print(response.message)
+                if response.message == 'Output data may contain inappropriate content.':
+                    return None, False
         except Exception as e:
             print(e)
 
@@ -164,10 +166,15 @@ if __name__ == '__main__':
         answer_clean = BeautifulSoup(answer_html, "html.parser").text
 
         knowledge_prompt = prompt + "题干：" + content_clean + "\n知识："
-        hint = call_with_prompt(knowledge_prompt)["output"]["text"]
+        response, success = call_with_prompt(knowledge_prompt)
+        if not success:
+            continue
+        hint = response["output"]["text"]
 
         request = hint + "\n" + content_clean + "\n<回答请用'答案是A'的格式>"
-        response = call_with_prompt(request)
+        response, success = call_with_prompt(request)
+        if not success:
+            continue
 
         llm_original_answer = json.dumps(response)
         text = response["output"]["text"]
