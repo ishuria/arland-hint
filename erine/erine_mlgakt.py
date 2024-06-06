@@ -134,11 +134,14 @@ def call_with_prompt(request, access_token):
     }
 
     while True:
-        response = requests.request("POST", url, headers=headers, data=payload)
-        print(response.text)
-        if "result" in json.loads(response.text):
-            break
-        time.sleep(1)
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            print(response.text)
+            if "result" in json.loads(response.text):
+                break
+            time.sleep(1)
+        except Exception as e:
+            print(e)
     return response.text
 
 
@@ -196,8 +199,12 @@ if __name__ == '__main__':
 
     total_score = 0
     for i in range(len(dataset)):
+        print("index: ", i + 1, " of total: ", len(dataset))
         item = json.loads(dataset[i][10])
         item_id = int(dataset[i][1])
+        original_answer = get_llm_answer('erine_mlgakt', item_id)
+        if len(original_answer) != 0:
+            continue
         std_features = softmax(item_features[str(item_id)])
         min_knowledge_cd = [x - float(y) for (x, y) in zip(knowledge_cd, std_features)]
         min_idxes = np.argsort(min_knowledge_cd)[:5]
@@ -231,10 +238,6 @@ if __name__ == '__main__':
         answer_html = item['bundler']['answers']
         # 去除html
         answer_clean = BeautifulSoup(answer_html, "html.parser").text
-
-        original_answer = get_llm_answer('erine_mlgakt', item_id)
-        if len(original_answer) != 0:
-            continue
 
         knowledge_prompt = prompt + "题干：" + content_clean + "\n知识："
         hint = json.loads(call_with_prompt(knowledge_prompt, access_token))["result"]

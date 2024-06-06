@@ -132,11 +132,14 @@ def call_with_prompt(request, access_token):
     }
 
     while True:
-        response = requests.request("POST", url, headers=headers, data=payload)
-        print(response.text)
-        if "result" in json.loads(response.text):
-            break
-        time.sleep(1)
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            print(response.text)
+            if "result" in json.loads(response.text):
+                break
+            time.sleep(1)
+        except Exception as e:
+            print(e)
     return response.text
 
 def get_item_content(item_id: int):
@@ -169,8 +172,13 @@ if __name__ == '__main__':
 
     total_score = 0
     for i in range(len(dataset)):
+        print("index: ", i + 1, " of total: ", len(dataset))
         item = json.loads(dataset[i][10])
         item_id = int(dataset[i][1])
+        original_answer = get_llm_answer('erine_gkp', item_id)
+        if len(original_answer) != 0:
+            continue
+
         # 提取信息
         content_html = item['bundler']['content']
         # 去除html
@@ -183,10 +191,6 @@ if __name__ == '__main__':
 
         knowledge_prompt = prompt + "题干：" + content_clean + "\n知识："
         hint = json.loads(call_with_prompt(knowledge_prompt, access_token))["result"]
-
-        original_answer = get_llm_answer('erine_gkp', item_id)
-        if len(original_answer) != 0:
-            continue
 
         request = hint + "\n" + content_clean + "\n<回答请用'答案是A'的格式>"
         response = call_with_prompt(request, access_token)
