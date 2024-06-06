@@ -114,7 +114,7 @@ def call_with_prompt(prompt):
             else:
                 print(response.code)
                 print(response.message)
-                if response.message == 'Output data may contain inappropriate content.':
+                if response.message.find('inappropriate') >= 0:
                     return None, False
         except Exception as e:
             print(e)
