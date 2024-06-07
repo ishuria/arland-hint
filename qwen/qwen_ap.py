@@ -151,7 +151,7 @@ if __name__ == '__main__':
         print("index: ", i + 1, " of total: ", len(dataset))
         item = json.loads(dataset[i][10])
         item_id = int(dataset[i][1])
-        original_answer = get_llm_answer('qwen_gkp', item_id)
+        original_answer = get_llm_answer('qwen_ap', item_id)
         if len(original_answer) != 0:
             continue
 
@@ -229,7 +229,7 @@ if __name__ == '__main__':
         total_score += score
         print("current average score: ", total_score / (i + 1))
 
-        save_llm_answer('qwen_gkp',
+        save_llm_answer('qwen_ap',
                         llm_original_answer,
                         answer_clean,
                         llm_answer_json,
