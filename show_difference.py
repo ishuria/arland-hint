@@ -7,7 +7,7 @@ from util.config_util import DB_HOST
 
 if __name__ == "__main__":
     db = mysql.connector.connect(
-        host="192.168.0.113",
+        host="127.0.0.1",
         # host=DB_HOST,
         user="root",
         password="123456",
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     item_id_answer_map = {}
     item_id_difference_map = {}
     cursor = db.cursor()
-    cursor.execute("select item_id, llm_answer, true_answer from llm_answer where llm_name = 'ChatGLM-6B';")
+    cursor.execute("select item_id, llm_answer, true_answer from llm_answer where llm_name like 'qwen%';")
     results = cursor.fetchall()
     cursor.close()
     db.close()
@@ -68,26 +68,26 @@ if __name__ == "__main__":
     # function to show the plot
     plt.show()
 
-    # db = mysql.connector.connect(
-    #     # host="192.168.0.102",
-    #     host=DB_HOST,
-    #     user="root",
-    #     password="123456",
-    #     database="ayesha",
-    #     auth_plugin='mysql_native_password'
-    #     )
-    # cursor = db.cursor()
-    # for k,v in item_id_difference_map.items():
-    #     if v >= 4.0:
-    #         cursor.execute("""
-    #     INSERT INTO `ayesha`.`difference_item`
-    #     (`item_id`)
-    #     VALUES
-    #     (%(item_id)s);
-    #     """ ,{
-    #         "item_id": k
-    #         })
-    # cursor.close()
-    # db.commit()
-    # db.close()
-    # print(item_id_difference_map)
+    db = mysql.connector.connect(
+        # host="192.168.0.102",
+        host=DB_HOST,
+        user="root",
+        password="123456",
+        database="ayesha",
+        auth_plugin='mysql_native_password'
+        )
+    cursor = db.cursor()
+    for k,v in item_id_difference_map.items():
+        if v >= 3.0:
+            cursor.execute("""
+        INSERT INTO `ayesha`.`difference_item_qwen`
+        (`item_id`)
+        VALUES
+        (%(item_id)s);
+        """ ,{
+            "item_id": k
+            })
+    cursor.close()
+    db.commit()
+    db.close()
+    print(item_id_difference_map)
